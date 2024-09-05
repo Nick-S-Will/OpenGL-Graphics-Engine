@@ -1,6 +1,9 @@
-#include <iostream>
+#include "GameController.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	GameController::GetInstance().Initialize();
+	GameController::GetInstance().RunGame();
+
+	return 0;
 }
