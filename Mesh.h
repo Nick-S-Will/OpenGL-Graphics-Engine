@@ -3,19 +3,21 @@
 #define MESH_H
 
 #include "StandardIncludes.h"
+class Shader;
 
 class Mesh
 {
 public:
-	Mesh();
+	Mesh() = default;
 	virtual ~Mesh();
 
-	void Create();
+	void Create(Shader* shader);
 	void Cleanup();
 	void Render();
 
 private:
-	GLuint vertexBuffer;
+	Shader* shader = nullptr;
+	GLuint vertexBuffer = 0;
 	std::vector<GLfloat> vertexData;
 };
 

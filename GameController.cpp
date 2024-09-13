@@ -1,10 +1,6 @@
 #include "GameController.h"
 #include "WindowController.h"
-
-GameController::GameController()
-{
-	mesh = {};
-}
+#include "ToolWindow.h"
 
 void GameController::Initialize()
 {
@@ -16,17 +12,35 @@ void GameController::Initialize()
 
 void GameController::RunGame()
 {
+	OpenGL::ToolWindow^ toolWindow = gcnew OpenGL::ToolWindow();
+	toolWindow->Show();
+
+	shader = Shader();
+	shader.LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+
 	mesh = Mesh();
-	mesh.Create();
+	mesh.Create(&shader);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	do
 	{
+		System::Windows::Forms::Application::DoEvents();
+
+		GLint location = 0;
+		location = glGetUniformLocation(shader.GetProgramID(), "RenderRedChannel");
+		glUniform1i(location, (int)OpenGL::ToolWindow::RenderRedChannel);
+		location = glGetUniformLocation(shader.GetProgramID(), "RenderGreenChannel");
+		glUniform1i(location, (int)OpenGL::ToolWindow::RenderGreenChannel);
+		location = glGetUniformLocation(shader.GetProgramID(), "RenderBlueChannel");
+		glUniform1i(location, (int)OpenGL::ToolWindow::RenderBlueChannel);
+
 		glClear(GL_COLOR_BUFFER_BIT);
 		mesh.Render();
 		glfwSwapBuffers(window);
+
 		glfwPollEvents();
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
+	shader.Cleanup();
 	mesh.Cleanup();
 }

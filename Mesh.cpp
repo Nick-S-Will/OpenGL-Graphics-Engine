@@ -1,17 +1,14 @@
 #include "Mesh.h"
-
-Mesh::Mesh()
-{
-	vertexBuffer = 0;
-}
+#include "Shader.h"
 
 Mesh::~Mesh()
 {
 	Cleanup();
 }
 
-void Mesh::Create()
+void Mesh::Create(Shader* shader)
 {
+	this->shader = shader;
 	vertexData = { -1.f, -1.f, 0.f, 1.f, -1.f, 0.f, 0.f, 1.f, 0.f };
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -23,14 +20,17 @@ void Mesh::Cleanup()
 	if (vertexBuffer == 0) return;
 
 	glDeleteBuffers(1, &vertexBuffer);
+	vertexBuffer = 0;
 }
 
 void Mesh::Render()
 {
-	glEnableVertexAttribArray(0);
+	glUseProgram(shader->GetProgramID());
+
+	glEnableVertexAttribArray(shader->GetVertices());
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(shader->GetVertices());
 }

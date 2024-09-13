@@ -3,6 +3,8 @@
 #define STANDARD_INCLUDES_H
 
 #include <vector>
+#include <string>
+#include <fstream>
 
 #ifdef _WIN32
 #include <Windows.h>

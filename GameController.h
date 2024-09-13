@@ -3,19 +3,21 @@
 #define GAME_CONTROLLER_H
 
 #include "StandardIncludes.h"
+#include "Shader.h"
 #include "Mesh.h"
 
 class GameController : public Singleton<GameController>
 {
 public:
-	GameController();
+	GameController() = default;
 	virtual ~GameController() {}
 
 	void Initialize();
 	void RunGame();
 
 private:
-	Mesh mesh;
+	Shader shader = {};
+	Mesh mesh = {};
 };
 
 #endif // !GAME_CONTROLLER_H
