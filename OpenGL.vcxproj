@@ -136,6 +136,7 @@ copy /Y "$(SolutionDir)External\glfw-3.3.4\lib-vc2019\glfw3.dll" "$(TargetDir)"<
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GameController.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -144,8 +145,10 @@ copy /Y "$(SolutionDir)External\glfw-3.3.4\lib-vc2019\glfw3.dll" "$(TargetDir)"<
     <ClCompile Include="WindowController.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="GameController.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Resolution.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="StandardIncludes.h" />

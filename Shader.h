@@ -15,6 +15,7 @@ public:
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
 	void Cleanup();
+	GLuint GetAttributeWVP() { return attributeWVP; }
 
 private:
 	void CreateShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
@@ -24,6 +25,7 @@ private:
 
 	GLuint programID = 0;
 	GLuint vertices = 0;
+	GLuint attributeWVP = 0;
 	GLint result = GL_FALSE;
 	int infoLogLength = 0;
 };

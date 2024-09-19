@@ -23,12 +23,14 @@ void Mesh::Cleanup()
 	vertexBuffer = 0;
 }
 
-void Mesh::Render()
+void Mesh::Render(glm::mat4 wvp)
 {
 	glUseProgram(shader->GetProgramID());
 
 	glEnableVertexAttribArray(shader->GetVertices());
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	wvp *= world;
+	glUniformMatrix4fv(shader->GetAttributeWVP(), 1, false, &wvp[0][0]);
 	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);

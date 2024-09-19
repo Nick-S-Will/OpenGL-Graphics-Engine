@@ -17,6 +17,7 @@ public:
 	}
 
 	void NewWindow();
+	Resolution GetResolution();
 
 private:
 	GLFWwindow* window;

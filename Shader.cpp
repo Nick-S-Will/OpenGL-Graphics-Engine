@@ -61,6 +61,7 @@ GLuint Shader::LoadShaderFile(const char* filePath, GLenum type)
 void Shader::LoadAttributes()
 {
 	vertices = glGetAttribLocation(programID, "vertices");
+	attributeWVP = glGetUniformLocation(programID, "WVP");
 }
 
 void Shader::EvaluateShader(int infoLength, GLuint id)
