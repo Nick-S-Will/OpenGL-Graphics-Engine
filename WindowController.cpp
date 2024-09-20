@@ -27,8 +27,8 @@ void WindowController::NewWindow()
 	glfwMakeContextCurrent(window);
 }
 
-Resolution WindowController::GetResolution()
+glm::ivec2 WindowController::GetScreenSize()
 {
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	return Resolution(mode->width, mode->height);
+	return glm::ivec2(mode->width, mode->height);
 }

@@ -12,17 +12,28 @@ namespace OpenGL
 	public ref class ToolWindow : public System::Windows::Forms::Form
 	{
 	public:
-		static bool RenderRedChannel;
-		static bool RenderGreenChannel;
-		static bool RenderBlueChannel;
+		bool RenderRedChannel;
+		bool RenderGreenChannel;
+		bool RenderBlueChannel;
 
 		ToolWindow(void)
-		{ 
+		{
 			InitializeComponent();
 
 			RenderRedChannel = redCheckBox->Checked;
 			RenderGreenChannel = greenCheckBox->Checked;
 			RenderBlueChannel = blueCheckBox->Checked;
+		}
+
+		void UpdateShaderColor(Shader* shader)
+		{
+			GLint location = 0;
+			location = glGetUniformLocation(shader->GetProgramID(), "RenderRedChannel");
+			glUniform1i(location, (int)RenderRedChannel);
+			location = glGetUniformLocation(shader->GetProgramID(), "RenderGreenChannel");
+			glUniform1i(location, (int)RenderGreenChannel);
+			location = glGetUniformLocation(shader->GetProgramID(), "RenderBlueChannel");
+			glUniform1i(location, (int)RenderBlueChannel);
 		}
 
 	protected:
@@ -35,8 +46,7 @@ namespace OpenGL
 	private: System::Windows::Forms::CheckBox^ greenCheckBox;
 	private: System::Windows::Forms::CheckBox^ blueCheckBox;
 
-	private:
-		System::ComponentModel::Container^ components;
+	private: System::ComponentModel::Container^ components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary> Required method for Designer support - do not modify

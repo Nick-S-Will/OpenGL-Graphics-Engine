@@ -4,13 +4,22 @@
 
 struct Resolution
 {
-	int width = 1280;
-	int height = 768;
+	int width;
+	int height;
+	float fieldOfViewAngle;
 
-	Resolution(int width, int height)
+	Resolution()
+	{
+		width = 1920;
+		height = 1080;
+		fieldOfViewAngle = 45.f;
+	}
+
+	Resolution(int width, int height, float fieldOfViewAngle)
 	{
 		this->width = width;
 		this->height = height;
+		this->fieldOfViewAngle = fieldOfViewAngle;
 	}
 };
 

@@ -3,20 +3,23 @@
 #define CAMERA_H
 
 #include "StandardIncludes.h"
+#include "WindowController.h"
 
 class Camera
 {
 public:
 	Camera() = default;
-	Camera(Resolution resolution);
+	Camera(glm::mat4 transform, Resolution resolution);
 	virtual ~Camera() = default;
 
+	glm::mat4 GetTransform() const { return transform; }
+	void SetTransform(glm::mat4 transform) { this->transform = transform; }
 	glm::mat4 GetProjection() const { return projection; }
-	glm::mat4 GetView() const { return view; }
+	void SetProjection(Resolution resolution);
 
 private:
+	glm::mat4 transform = {};
 	glm::mat4 projection = {};
-	glm::mat4 view = {};
 };
 
 #endif // !CAMERA_H

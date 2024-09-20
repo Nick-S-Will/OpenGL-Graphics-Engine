@@ -1,6 +1,7 @@
 #pragma once
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
+#define CAMERA_COUNT 3
 
 #include "StandardIncludes.h"
 #include "Shader.h"
@@ -15,11 +16,15 @@ public:
 
 	void Initialize();
 	void RunGame();
+	void ChangeCamera();
+	void ChangeResolution();
 
 private:
 	Shader shader = {};
 	Mesh mesh = {};
-	Camera camera;
+	Resolution resolutions[CAMERA_COUNT];
+	Camera cameras[CAMERA_COUNT];
+	int resolutionIndex = 0, cameraIndex = 0;
 };
 
 #endif // !GAME_CONTROLLER_H

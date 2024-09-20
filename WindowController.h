@@ -17,7 +17,7 @@ public:
 	}
 
 	void NewWindow();
-	Resolution GetResolution();
+	glm::ivec2 GetScreenSize();
 
 private:
 	GLFWwindow* window;

@@ -9,7 +9,18 @@ void GameController::Initialize()
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.f, 0.f, 0.4f, 0.f);
 
-	camera = Camera(WindowController::GetInstance().GetResolution());
+	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
+	for (int i = 0; i < CAMERA_COUNT; i++)
+	{
+		resolutions[i] = Resolution(screenSize.x, screenSize.y, 40.f + i * 20.f);
+	}
+
+	glm::vec3 positions[CAMERA_COUNT] = { glm::vec3(0.f, 0.f, 3.f), glm::vec3(-4.f, 3.f, 3.f), glm::vec3(4.f, 3.f, 3.f) };
+	for (int i = 0; i < CAMERA_COUNT; i++)
+	{
+		glm::mat4 transform = glm::lookAt(positions[i], glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		cameras[i] = Camera(transform, resolutions[resolutionIndex]);
+	}
 }
 
 void GameController::RunGame()
@@ -24,25 +35,36 @@ void GameController::RunGame()
 	mesh.Create(&shader);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
+	bool changeCameraPressed = false, changeResolutionPressed = false;
 	do
 	{
 		System::Windows::Forms::Application::DoEvents();
-
-		GLint location = 0;
-		location = glGetUniformLocation(shader.GetProgramID(), "RenderRedChannel");
-		glUniform1i(location, (int)OpenGL::ToolWindow::RenderRedChannel);
-		location = glGetUniformLocation(shader.GetProgramID(), "RenderGreenChannel");
-		glUniform1i(location, (int)OpenGL::ToolWindow::RenderGreenChannel);
-		location = glGetUniformLocation(shader.GetProgramID(), "RenderBlueChannel");
-		glUniform1i(location, (int)OpenGL::ToolWindow::RenderBlueChannel);
-
-		glClear(GL_COLOR_BUFFER_BIT);
-		mesh.Render(camera.GetProjection() * camera.GetView());
-		glfwSwapBuffers(window);
+		toolWindow->UpdateShaderColor(&shader);
 
 		glfwPollEvents();
-	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
+		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && !changeCameraPressed) ChangeCamera();
+		changeCameraPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
+		if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && !changeResolutionPressed) ChangeResolution();
+		changeResolutionPressed = glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS;
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		mesh.Render(cameras[cameraIndex].GetProjection() * cameras[cameraIndex].GetTransform());
+		glfwSwapBuffers(window);
+	}
+	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
 	shader.Cleanup();
 	mesh.Cleanup();
+}
+
+void GameController::ChangeCamera()
+{
+	cameraIndex = (cameraIndex + 1) % CAMERA_COUNT;
+	cameras[cameraIndex].SetProjection(resolutions[resolutionIndex]);
+}
+
+void GameController::ChangeResolution()
+{
+	resolutionIndex = (resolutionIndex + 1) % CAMERA_COUNT;
+	cameras[cameraIndex].SetProjection(resolutions[resolutionIndex]);
 }
