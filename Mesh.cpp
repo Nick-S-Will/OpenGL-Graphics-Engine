@@ -9,7 +9,19 @@ Mesh::~Mesh()
 void Mesh::Create(Shader* shader)
 {
 	this->shader = shader;
-	vertexData = { -1.f, -1.f, 0.f, 1.f, -1.f, 0.f, 0.f, 1.f, 0.f };
+
+	vertexData = { 
+		// Position			RGBA Color
+		0.2f, 0.2f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
+		0.3f, 0.9f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
+		0.4f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f, 1.0f,
+		0.7f, 0.8f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
+		0.8f, 0.4f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 0.6f, 0.0f,	0.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 0.2f, 0.0f,	1.0f, 0.0f, 0.0f, 1.0f,
+		1.5f, 0.6f, 0.0f,	0.0f, 1.0f, 0.0f, 1.0f,
+	};
+	
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STATIC_DRAW);
@@ -27,12 +39,17 @@ void Mesh::Render(glm::mat4 wvp)
 {
 	glUseProgram(shader->GetProgramID());
 
-	glEnableVertexAttribArray(shader->GetVertices());
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	wvp *= world;
-	glUniformMatrix4fv(shader->GetAttributeWVP(), 1, false, &wvp[0][0]);
-	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glUniformMatrix4fv(shader->GetAttributeWVP(), 1, FALSE, &wvp[0][0]);
+	
+	glEnableVertexAttribArray(shader->GetVertices());
+	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	
+	glEnableVertexAttribArray(shader->GetColors());
+	glVertexAttribPointer(shader->GetColors(), 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / 7);
 	glDisableVertexAttribArray(shader->GetVertices());
+	glDisableVertexAttribArray(shader->GetColors());
 }

@@ -7,7 +7,7 @@ void GameController::Initialize()
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	M_ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW.");
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-	glClearColor(0.f, 0.f, 0.4f, 0.f);
+	glClearColor(0.f, 0.f, 0.f, 0.f);
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	for (int i = 0; i < CAMERA_COUNT; i++)
