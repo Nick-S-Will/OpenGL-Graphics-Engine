@@ -8,6 +8,12 @@ out vec4 retColor;
 
 void main()
 {
-	gl_Position = WVP * vec4(vertices, 1.0);
+	mat4 offset = mat4(
+    1.0, 0.0, 0.0, 0.0,  
+    0.0, 1.0, 0.0, 0.0,  
+    0.0, 0.0, 1.0, 0.0, 
+    -0.4, -0.4, 0.0, 1.0);
+
+	gl_Position = offset * WVP * vec4(vertices, 1.0);
 	retColor = colors;
 }
