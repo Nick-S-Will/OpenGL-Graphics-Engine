@@ -13,12 +13,13 @@ public:
 
 	void Create(Shader* shader);
 	void Cleanup();
-	void Render(glm::mat4 wvp);
+	void Render(glm::mat4 wvp, float deltaTime);
 
 private:
 	Shader* shader = nullptr;
-	GLuint vertexBuffer = 0;
+	GLuint vertexBuffer = 0, indexBuffer = 0;
 	std::vector<GLfloat> vertexData;
+	std::vector<GLubyte> indexData;
 	glm::mat4 world = glm::mat4(1);
 };
 
