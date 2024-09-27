@@ -36,6 +36,7 @@ void GameController::RunGame()
 	mesh.Create(&shader);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
+	glm::vec3 eulerAngles(0);
 	double lastTime = 0.;
 	bool changeCameraPressed = false, changeResolutionPressed = false;
 	do
@@ -48,12 +49,21 @@ void GameController::RunGame()
 		changeCameraPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;
 		if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && !changeResolutionPressed) ChangeResolution();
 		changeResolutionPressed = glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS;
+		
+		double time = glfwGetTime();
+		float deltaTime = (float)(time - lastTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) eulerAngles.y -= deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) eulerAngles.y += deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) eulerAngles.x -= deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) eulerAngles.x += deltaTime;
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		mesh.Render(cameras[cameraIndex].GetProjection() * cameras[cameraIndex].GetView(), glfwGetTime() - lastTime);
+
+		float scale = PingPong((float)time / 2.f, 2.f - 0.01f) + 0.01f;
+		mesh.Render(cameras[cameraIndex].GetProjection() * cameras[cameraIndex].GetView(), eulerAngles, scale);
 		glfwSwapBuffers(window);
 
-		lastTime = glfwGetTime();
+		lastTime = time;
 	}
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 

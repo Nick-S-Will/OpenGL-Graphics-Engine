@@ -25,6 +25,12 @@ private:
 	Resolution resolutions[CAMERA_COUNT];
 	Camera cameras[CAMERA_COUNT];
 	int resolutionIndex = 0, cameraIndex = 0;
+
+	static float PingPong(const float& t, const float& length)
+	{
+		float mod = fmod(t, 2 * length);
+		return length - fabs(mod - length);
+	}
 };
 
 #endif // !GAME_CONTROLLER_H

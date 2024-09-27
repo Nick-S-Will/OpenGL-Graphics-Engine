@@ -51,12 +51,11 @@ void Mesh::Cleanup()
 	indexBuffer = 0;
 }
 
-void Mesh::Render(glm::mat4 wvp, float deltaTime)
+void Mesh::Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale)
 {
 	glUseProgram(shader->GetProgramID());
 
-	world = glm::rotate(world, deltaTime, glm::vec3(0, 1, 0));
-	wvp *= world;
+	wvp *= glm::scale(glm::mat4(1), scale * glm::vec3(1)) * GetRotationFromEulerAngles(eulerAngles) * world;
 	glUniformMatrix4fv(shader->GetAttributeWVP(), 1, FALSE, &wvp[0][0]);
 	
 	glEnableVertexAttribArray(shader->GetVertices());
