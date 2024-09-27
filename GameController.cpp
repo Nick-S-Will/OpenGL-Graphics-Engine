@@ -18,8 +18,8 @@ void GameController::Initialize()
 	glm::vec3 positions[CAMERA_COUNT] = { glm::vec3(0.f, 0.f, 3.f), glm::vec3(-4.f, 3.f, 3.f), glm::vec3(4.f, 3.f, 3.f) };
 	for (int i = 0; i < CAMERA_COUNT; i++)
 	{
-		glm::mat4 transform = glm::lookAt(positions[i], glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-		cameras[i] = Camera(transform, resolutions[resolutionIndex]);
+		cameras[i] = Camera(resolutions[resolutionIndex]);
+		cameras[i].LookAt(positions[i], glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 	}
 }
 
@@ -48,7 +48,7 @@ void GameController::RunGame()
 		changeResolutionPressed = glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS;
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		mesh.Render(cameras[cameraIndex].GetProjection() * cameras[cameraIndex].GetTransform());
+		mesh.Render(cameras[cameraIndex].GetProjection() * cameras[cameraIndex].GetView());
 		glfwSwapBuffers(window);
 	}
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);

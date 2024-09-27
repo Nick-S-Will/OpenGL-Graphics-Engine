@@ -9,17 +9,18 @@ class Camera
 {
 public:
 	Camera() = default;
-	Camera(glm::mat4 transform, Resolution resolution);
+	Camera(const Resolution& resolution, const float minDistance = 0.1f, const float maxDistance = 1000.f);
 	virtual ~Camera() = default;
 
-	glm::mat4 GetTransform() const { return transform; }
-	void SetTransform(glm::mat4 transform) { this->transform = transform; }
 	glm::mat4 GetProjection() const { return projection; }
-	void SetProjection(Resolution resolution);
+	glm::mat4 GetView() const { return view; }
+
+	void SetProjection(const Resolution& resolution);
+	void LookAt(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& up);
 
 private:
-	glm::mat4 transform = {};
 	glm::mat4 projection = {};
+	glm::mat4 view = {};
 };
 
 #endif // !CAMERA_H
