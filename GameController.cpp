@@ -16,7 +16,7 @@ void GameController::Initialize()
 		resolutions[i] = Resolution(screenSize.x, screenSize.y, 40.f + i * 20.f);
 	}
 
-	glm::vec3 positions[CAMERA_COUNT] = { glm::vec3(200.f, 200.f, 200.f), glm::vec3(-4.f, 3.f, 3.f), glm::vec3(4.f, 3.f, 3.f) };
+	glm::vec3 positions[CAMERA_COUNT] = { glm::vec3(100.f, 100.f, 100.f), glm::vec3(-4.f, 3.f, 3.f), glm::vec3(4.f, 3.f, 3.f) };
 	for (int i = 0; i < CAMERA_COUNT; i++)
 	{
 		cameras[i] = Camera(resolutions[0]);
