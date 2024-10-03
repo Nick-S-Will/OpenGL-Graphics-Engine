@@ -9,9 +9,9 @@ class Texture
 public:
 	virtual ~Texture();
 
-	GLuint GetTexture() { return texture; }
+	GLuint GetTexture() const { return texture; }
 
-	void LoadTexture(std::string fileName);
+	void LoadTexture(std::string fileName, GLenum wrapMode);
 	void CleanUp();
 
 private:

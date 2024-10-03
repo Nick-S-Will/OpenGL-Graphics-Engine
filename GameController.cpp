@@ -32,8 +32,9 @@ void GameController::RunGame()
 	shader = Shader();
 	shader.LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
+	GLenum textWrapModes[] = { GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER };
 	mesh = Mesh();
-	mesh.Create(&shader);
+	mesh.Create(&shader, textWrapModes[0]);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	glm::vec3 eulerAngles(0);

@@ -13,7 +13,7 @@ public:
 	Mesh() = default;
 	virtual ~Mesh();
 
-	void Create(Shader* shader);
+	void Create(Shader* shader, GLenum textureWrapMode);
 	void Cleanup();
 	void Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale);
 

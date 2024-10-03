@@ -6,19 +6,19 @@ Mesh::~Mesh()
 	Cleanup();
 }
 
-void Mesh::Create(Shader* shader)
+void Mesh::Create(Shader* shader, GLenum textureWrapMode)
 {
 	this->shader = shader;
 	texture = Texture();
-	texture.LoadTexture("./Assets/Textures/Tacos.jpg");
+	texture.LoadTexture("./Assets/Textures/Tacos.jpg", textureWrapMode);
 
 	float a = 50.f;
 	vertexData = {
 		// Position		RGB Color		UV
-		a, a, 0.f,		1.f, 0.f, 0.f,	1.f, 1.f,
-		a, -a, 0.f,		0.f, 1.f, 0.f,	1.f, 0.f,
+		a, a, 0.f,		1.f, 0.f, 0.f,	2.f, 2.f,
+		a, -a, 0.f,		0.f, 1.f, 0.f,	2.f, 0.f,
 		-a, -a, 0.f,	0.f, 0.f, 1.f,	0.f, 0.f,
-		-a, a, 0.f,		1.f, 1.f, 1.f,	0.f, 1.f
+		-a, a, 0.f,		1.f, 1.f, 1.f,	0.f, 2.f
 	};
 
 	glGenBuffers(1, &vertexBuffer);
