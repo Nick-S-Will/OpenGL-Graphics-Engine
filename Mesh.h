@@ -10,12 +10,19 @@ class Shader;
 class Mesh
 {
 public:
+	glm::vec3 position;
+	glm::vec3 eulerAngles;
+	glm::vec3 scale;
+	glm::vec2 textureOffset;
+
 	Mesh() = default;
 	virtual ~Mesh();
 
+	glm::mat4 GetTransform() const { return glm::translate(glm::mat4(1), position) * GetRotationFromEulerAngles(eulerAngles) * glm::scale(glm::mat4(1), scale); }
+
 	void Create(Shader* shader, GLenum textureWrapMode);
 	void Cleanup();
-	void Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale);
+	void Render(glm::mat4 wvp);
 
 private:
 	Shader* shader = nullptr;
@@ -25,9 +32,6 @@ private:
 	GLuint indexBuffer = 0;
 	std::vector<GLfloat> vertexData;
 	std::vector<GLubyte> indexData;
-	glm::mat4 world = glm::mat4(1);
-	glm::vec3 position;
-	glm::vec3 rotation;
 
 	static glm::mat4 GetRotationFromEulerAngles(const glm::vec3& eulerAngles)
 	{

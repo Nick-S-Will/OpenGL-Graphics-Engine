@@ -14,6 +14,7 @@ public:
 	GLuint GetVertices() const { return verticesLocation; }
 	GLuint GetColors() const { return colorsLocation; }
 	GLuint GetTextureCoords() { return textureCoordsLocation; }
+	GLuint GetTextureOffset() { return textureOffsetLocation; }
 	GLuint GetSampler1() { return sampler1Location; }
 	GLuint GetSampler2() { return sampler2Location; }
 	GLuint GetWVP() const { return WVPLocation; }
@@ -31,6 +32,7 @@ private:
 	GLuint verticesLocation = 0;
 	GLuint colorsLocation = 0;
 	GLuint textureCoordsLocation = 0;
+	GLuint textureOffsetLocation = 0;
 	GLuint sampler1Location = 0;
 	GLuint sampler2Location = 0;
 	GLuint WVPLocation = 0;

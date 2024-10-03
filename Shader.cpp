@@ -63,6 +63,7 @@ void Shader::LoadAttributes()
 	verticesLocation = glGetAttribLocation(programID, "vertices");
 	colorsLocation = glGetAttribLocation(programID, "colors");
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
+	textureOffsetLocation = glGetUniformLocation(programID, "texOffset");
 	sampler1Location = glGetUniformLocation(programID, "sampler1");
 	sampler2Location = glGetUniformLocation(programID, "sampler2");
 	WVPLocation = glGetUniformLocation(programID, "WVP");

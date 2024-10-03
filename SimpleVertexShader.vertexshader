@@ -5,6 +5,7 @@ in vec3 colors;
 in vec2 texCoords;
 
 uniform mat4 WVP;
+uniform vec2 texOffset;
 
 out vec3 retColor;
 out vec2 retTexCoord;
@@ -13,5 +14,5 @@ void main()
 {
 	gl_Position = WVP * vec4(vertices, 1.0);
 	retColor = colors;
-	retTexCoord = texCoords;
+	retTexCoord = texCoords + texOffset;
 }

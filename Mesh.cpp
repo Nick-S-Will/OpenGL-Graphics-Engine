@@ -46,11 +46,11 @@ void Mesh::Cleanup()
 	indexBuffer = 0;
 }
 
-void Mesh::Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale)
+void Mesh::Render(glm::mat4 wvp)
 {
 	glUseProgram(shader->GetProgramID());
 
-	wvp *= glm::scale(glm::mat4(1), scale * glm::vec3(1)) * GetRotationFromEulerAngles(eulerAngles) * world;
+	wvp *= GetTransform();
 	glUniformMatrix4fv(shader->GetWVP(), 1, FALSE, &wvp[0][0]);
 	
 	glEnableVertexAttribArray(shader->GetVertices());
@@ -64,6 +64,9 @@ void Mesh::Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale)
 	glEnableVertexAttribArray(shader->GetTextureCoords());
 	glVertexAttribPointer(shader->GetTextureCoords(), 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	
+	glEnableVertexAttribArray(shader->GetTextureOffset());
+	glUniform2fv(shader->GetTextureOffset(), 1, &textureOffset[0]);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.GetTexture());
 	glUniform1i(shader->GetSampler1(), 0);
@@ -76,4 +79,5 @@ void Mesh::Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale)
 	glDisableVertexAttribArray(shader->GetVertices());
 	glDisableVertexAttribArray(shader->GetColors());
 	glDisableVertexAttribArray(shader->GetTextureCoords());
+	glDisableVertexAttribArray(shader->GetTextureOffset());
 }
