@@ -26,9 +26,6 @@ void GameController::Initialize()
 
 void GameController::RunGame()
 {
-	OpenGL::ToolWindow^ toolWindow = gcnew OpenGL::ToolWindow();
-	toolWindow->Show();
-
 	shader = Shader();
 	shader.LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
@@ -42,9 +39,6 @@ void GameController::RunGame()
 	bool changeCameraPressed = false, changeResolutionPressed = false;
 	do
 	{
-		System::Windows::Forms::Application::DoEvents();
-		toolWindow->UpdateShaderColor(&shader);
-
 		glfwPollEvents();
 		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && !changeCameraPressed) ChangeCamera();
 		changeCameraPressed = glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS;

@@ -11,14 +11,17 @@ void Mesh::Create(Shader* shader, GLenum textureWrapMode)
 	this->shader = shader;
 	texture = Texture();
 	texture.LoadTexture("./Assets/Textures/Tacos.jpg", textureWrapMode);
+	
+	texture2 = Texture();
+	texture2.LoadTexture("./Assets/Textures/Pattern.png", textureWrapMode);
 
 	float a = 50.f;
 	vertexData = {
 		// Position		RGB Color		UV
-		a, a, 0.f,		1.f, 0.f, 0.f,	2.f, 2.f,
-		a, -a, 0.f,		0.f, 1.f, 0.f,	2.f, 0.f,
+		a, a, 0.f,		1.f, 0.f, 0.f,	1.f, 1.f,
+		a, -a, 0.f,		0.f, 1.f, 0.f,	1.f, 0.f,
 		-a, -a, 0.f,	0.f, 0.f, 1.f,	0.f, 0.f,
-		-a, a, 0.f,		1.f, 1.f, 1.f,	0.f, 2.f
+		-a, a, 0.f,		1.f, 1.f, 1.f,	0.f, 1.f
 	};
 
 	glGenBuffers(1, &vertexBuffer);
@@ -36,6 +39,7 @@ void Mesh::Create(Shader* shader, GLenum textureWrapMode)
 void Mesh::Cleanup()
 {
 	texture.CleanUp();
+	texture2.CleanUp();
 	if (vertexBuffer != 0) glDeleteBuffers(1, &vertexBuffer);
 	if (indexBuffer != 0) glDeleteBuffers(1, &indexBuffer);
 	vertexBuffer = 0;
@@ -59,9 +63,14 @@ void Mesh::Render(glm::mat4 wvp, glm::vec3 eulerAngles, float scale)
 	
 	glEnableVertexAttribArray(shader->GetTextureCoords());
 	glVertexAttribPointer(shader->GetTextureCoords(), 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.GetTexture());
 	glUniform1i(shader->GetSampler1(), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2.GetTexture());
+	glUniform1i(shader->GetSampler1(), 1);
 
 	glDrawElements(GL_TRIANGLES, indexData.size(), GL_UNSIGNED_BYTE, (void*)0);
 	glDisableVertexAttribArray(shader->GetVertices());

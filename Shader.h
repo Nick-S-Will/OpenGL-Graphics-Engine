@@ -15,6 +15,7 @@ public:
 	GLuint GetColors() const { return colorsLocation; }
 	GLuint GetTextureCoords() { return textureCoordsLocation; }
 	GLuint GetSampler1() { return sampler1Location; }
+	GLuint GetSampler2() { return sampler2Location; }
 	GLuint GetWVP() const { return WVPLocation; }
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
@@ -31,6 +32,7 @@ private:
 	GLuint colorsLocation = 0;
 	GLuint textureCoordsLocation = 0;
 	GLuint sampler1Location = 0;
+	GLuint sampler2Location = 0;
 	GLuint WVPLocation = 0;
 	GLint result = GL_FALSE;
 	int infoLogLength = 0;
