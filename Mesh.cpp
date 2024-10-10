@@ -11,29 +11,53 @@ void Mesh::Create(Shader* shader, GLenum textureWrapMode)
 	this->shader = shader;
 	texture = Texture();
 	texture.LoadTexture("./Assets/Textures/Tacos.jpg", textureWrapMode);
-	
+
 	texture2 = Texture();
 	texture2.LoadTexture("./Assets/Textures/Pattern.png", textureWrapMode);
 
-	float a = 50.f;
 	vertexData = {
-		// Position		RGB Color		UV
-		a, a, 0.f,		1.f, 0.f, 0.f,	1.f, 1.f,
-		a, -a, 0.f,		0.f, 1.f, 0.f,	1.f, 0.f,
-		-a, -a, 0.f,	0.f, 0.f, 1.f,	0.f, 0.f,
-		-a, a, 0.f,		1.f, 1.f, 1.f,	0.f, 1.f
+		// Position				Normals				Texture Coords
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 1.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,	0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 1.0f,
+		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,	0.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f
 	};
 
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
-
-	indexData = {
-		2, 0, 3, 2, 1, 0
-	};
-	glGenBuffers(1, &indexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, indexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexData.size() * sizeof(GLubyte), indexData.data(), GL_STATIC_DRAW);
 }
 
 void Mesh::Cleanup()
@@ -50,22 +74,23 @@ void Mesh::Render(glm::mat4 wvp)
 {
 	glUseProgram(shader->GetProgramID());
 
+	shader->SetVec3("LightDirection", { 1.0f, 0.5f, 0.0f });
+	shader->SetVec3("LightColor", { 0.3f, 1.0f, 0.3f });
+	shader->SetVec3("AmbientLight", { 0.1f, 0.1f, 0.1f });
+	shader->SetVec3("DiffuseColor", { 1.0f, 1.0f, 1.0f });
+
 	wvp *= GetTransform();
 	glUniformMatrix4fv(shader->GetWVP(), 1, FALSE, &wvp[0][0]);
-	
+
 	glEnableVertexAttribArray(shader->GetVertices());
 	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	
-	glEnableVertexAttribArray(shader->GetColors());
-	glVertexAttribPointer(shader->GetColors(), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	
+
+	glEnableVertexAttribArray(shader->GetNormals());
+	glVertexAttribPointer(shader->GetNormals(), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
 	glEnableVertexAttribArray(shader->GetTextureCoords());
 	glVertexAttribPointer(shader->GetTextureCoords(), 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	
-	glEnableVertexAttribArray(shader->GetTextureOffset());
-	glUniform2fv(shader->GetTextureOffset(), 1, &textureOffset[0]);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.GetTexture());
@@ -73,11 +98,10 @@ void Mesh::Render(glm::mat4 wvp)
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture2.GetTexture());
-	glUniform1i(shader->GetSampler1(), 1);
+	glUniform1i(shader->GetSampler2(), 1);
 
-	glDrawElements(GL_TRIANGLES, indexData.size(), GL_UNSIGNED_BYTE, (void*)0);
+	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / 8);
 	glDisableVertexAttribArray(shader->GetVertices());
-	glDisableVertexAttribArray(shader->GetColors());
+	glDisableVertexAttribArray(shader->GetNormals());
 	glDisableVertexAttribArray(shader->GetTextureCoords());
-	glDisableVertexAttribArray(shader->GetTextureOffset());
 }

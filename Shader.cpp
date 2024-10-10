@@ -11,9 +11,20 @@ void Shader::LoadShaders(const char* vertexFilePath, const char* fragmentFilePat
 	LoadAttributes();
 }
 
+void Shader::SetVec3(const char* name, glm::vec3 value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glUniform3fv(location, 1, &value[0]);
+}
+
 void Shader::Cleanup()
 {
-	if (programID != 0) glDeleteProgram(programID);
+	if (programID != 0)
+	{
+		glDeleteProgram(programID);
+	}
 	programID = 0;
 }
 
@@ -61,9 +72,8 @@ GLuint Shader::LoadShaderFile(const char* filePath, GLenum type)
 void Shader::LoadAttributes()
 {
 	verticesLocation = glGetAttribLocation(programID, "vertices");
-	colorsLocation = glGetAttribLocation(programID, "colors");
+	normalsLocation = glGetAttribLocation(programID, "normals");
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
-	textureOffsetLocation = glGetUniformLocation(programID, "texOffset");
 	sampler1Location = glGetUniformLocation(programID, "sampler1");
 	sampler2Location = glGetUniformLocation(programID, "sampler2");
 	WVPLocation = glGetUniformLocation(programID, "WVP");

@@ -12,14 +12,14 @@ public:
 
 	GLuint GetProgramID() const { return programID; }
 	GLuint GetVertices() const { return verticesLocation; }
-	GLuint GetColors() const { return colorsLocation; }
+	GLuint GetNormals() const { return normalsLocation; }
 	GLuint GetTextureCoords() { return textureCoordsLocation; }
-	GLuint GetTextureOffset() { return textureOffsetLocation; }
+	GLuint GetWVP() const { return WVPLocation; }
 	GLuint GetSampler1() { return sampler1Location; }
 	GLuint GetSampler2() { return sampler2Location; }
-	GLuint GetWVP() const { return WVPLocation; }
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
+	void SetVec3(const char* name, glm::vec3 value);
 	void Cleanup();
 
 private:
@@ -30,12 +30,11 @@ private:
 
 	GLuint programID = 0;
 	GLuint verticesLocation = 0;
-	GLuint colorsLocation = 0;
+	GLuint normalsLocation = 0;
 	GLuint textureCoordsLocation = 0;
-	GLuint textureOffsetLocation = 0;
+	GLuint WVPLocation = 0;
 	GLuint sampler1Location = 0;
 	GLuint sampler2Location = 0;
-	GLuint WVPLocation = 0;
 	GLint result = GL_FALSE;
 	int infoLogLength = 0;
 };

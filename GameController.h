@@ -1,12 +1,11 @@
 #pragma once
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
-#define CAMERA_COUNT 3
 
 #include "StandardIncludes.h"
+#include "Camera.h"
 #include "Shader.h"
 #include "Mesh.h"
-#include "Camera.h"
 
 class GameController : public Singleton<GameController>
 {
@@ -16,21 +15,12 @@ public:
 
 	void Initialize();
 	void RunGame();
-	void ChangeCamera();
-	void ChangeResolution();
 
 private:
+	Resolution resolution;
+	Camera camera;
 	Shader shader = {};
 	Mesh mesh = {};
-	Resolution resolutions[CAMERA_COUNT];
-	Camera cameras[CAMERA_COUNT];
-	int resolutionIndex = 0, cameraIndex = 0;
-
-	static float PingPong(const float& t, const float& length)
-	{
-		float mod = fmod(t, 2 * length);
-		return length - fabs(mod - length);
-	}
 };
 
 #endif // !GAME_CONTROLLER_H

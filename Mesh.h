@@ -12,7 +12,7 @@ class Mesh
 public:
 	glm::vec3 position;
 	glm::vec3 eulerAngles;
-	glm::vec3 scale;
+	glm::vec3 scale = glm::vec3(1.f);
 	glm::vec2 textureOffset;
 
 	Mesh() = default;
