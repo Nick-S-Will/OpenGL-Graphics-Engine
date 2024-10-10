@@ -19,6 +19,22 @@ void Shader::SetVec3(const char* name, glm::vec3 value)
 	glUniform3fv(location, 1, &value[0]);
 }
 
+void Shader::SetMat4(const char* name, glm::mat4 value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+}
+
+void Shader::SetFloat(const char* name, float value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glUniform1f(location, value);
+}
+
 void Shader::Cleanup()
 {
 	if (programID != 0)
@@ -76,7 +92,6 @@ void Shader::LoadAttributes()
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
 	sampler1Location = glGetUniformLocation(programID, "sampler1");
 	sampler2Location = glGetUniformLocation(programID, "sampler2");
-	WVPLocation = glGetUniformLocation(programID, "WVP");
 }
 
 void Shader::EvaluateShader(int infoLength, GLuint id)

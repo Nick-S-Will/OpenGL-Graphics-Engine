@@ -8,6 +8,8 @@
 class Camera
 {
 public:
+	glm::vec3 position = {};
+
 	Camera() = default;
 	Camera(const Resolution& resolution, const float minDistance = 0.1f, const float maxDistance = 1000.f);
 	virtual ~Camera() = default;

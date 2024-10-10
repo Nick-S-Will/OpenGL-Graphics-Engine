@@ -1,8 +1,12 @@
 #version 330 // OpenGL version 3.3
 
+in vec3 retPos;
 in vec3 retNormal;
 in vec2 retTexCoord;
+in vec3 retViewDirection;
 
+uniform float SpecularStrength;
+uniform vec3 SpecularColor;
 uniform vec3 LightDirection;
 uniform vec3 LightColor;
 uniform vec3 AmbientLight;
@@ -14,7 +18,10 @@ out vec4 FragColor;
 
 void main()
 {
-	vec3 lambertian = dot(normalize(LightDirection), retNormal) * LightColor;
-	vec3 color = clamp(lambertian + AmbientLight, 0.0f, 1.0f) * DiffuseColor;
+	vec3 lightDir = normalize(LightDirection);
+	vec3 lambertian = dot(lightDir, retNormal) * LightColor;
+	vec3 refl = reflect(-lightDir, retNormal);
+	vec3 specular = pow(max(dot(refl, retViewDirection), 0.0f), SpecularStrength) * SpecularColor;
+	vec3 color = (AmbientLight + lambertian + specular) * DiffuseColor;
 	FragColor = vec4(color, 1.0f) * texture(sampler1, retTexCoord);
 }

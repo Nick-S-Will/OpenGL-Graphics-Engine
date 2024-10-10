@@ -19,8 +19,10 @@ public:
 private:
 	Resolution resolution;
 	Camera camera;
-	Shader shader = {};
-	Mesh mesh = {};
+	Shader diffuseShader = {};
+	Shader colorShader = {};
+	Mesh boxMesh = {};
+	Mesh lightMesh = {};
 };
 
 #endif // !GAME_CONTROLLER_H

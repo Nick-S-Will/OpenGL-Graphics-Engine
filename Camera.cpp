@@ -14,5 +14,6 @@ void Camera::SetProjection(const Resolution& resolution)
 
 void Camera::LookAt(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& up)
 {
+	this->position = position;
 	view = glm::lookAt(position, lookAt, up);
 }

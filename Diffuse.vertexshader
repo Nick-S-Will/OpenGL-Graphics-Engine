@@ -4,14 +4,20 @@ in vec3 vertices;
 in vec3 normals;
 in vec2 texCoords;
 
+uniform mat4 World;
 uniform mat4 WVP;
+uniform vec3 CameraPosition;
 
+out vec3 retPos;
 out vec3 retNormal;
 out vec2 retTexCoord;
+out vec3 retViewDirection;
 
 void main()
 {
 	gl_Position = WVP * vec4(vertices, 1.0);
-	retNormal = normals;
+	retPos = vec3(World * vec4(vertices, 1.0f));
+	retNormal = normalize(mat3(transpose(inverse(World))) * normals);
 	retTexCoord = texCoords;
+	retViewDirection = normalize(CameraPosition - retPos);
 }
