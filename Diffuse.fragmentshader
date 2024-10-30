@@ -1,27 +1,43 @@
 #version 330 // OpenGL version 3.3
 
+struct Material
+{
+	float specularStrength;
+	sampler2D diffuseTexture;
+	sampler2D specularTexture;
+};
+
+struct Light
+{
+	vec3 position;
+	vec3 direction;
+	vec3 color;
+	vec3 ambientColor;
+	vec3 diffuseColor;
+	vec3 specularColor;
+};
+
 in vec3 retPos;
 in vec3 retNormal;
 in vec2 retTexCoord;
 in vec3 retViewDirection;
 
-uniform float SpecularStrength;
-uniform vec3 SpecularColor;
-uniform vec3 LightDirection;
-uniform vec3 LightColor;
-uniform vec3 AmbientLight;
-uniform vec3 DiffuseColor;
-uniform sampler2D sampler1;
-uniform sampler2D sampler2;
+uniform Material material;
+uniform Light light;
 
 out vec4 FragColor;
 
 void main()
 {
-	vec3 lightDir = normalize(LightDirection);
-	vec3 lambertian = dot(lightDir, retNormal) * LightColor;
+	vec3 ambient = texture(material.diffuseTexture, retTexCoord).rgb * light.ambientColor;
+
+	vec3 lightDir = normalize(light.position - retPos);
+	float lambertianStrength = dot(lightDir, retNormal);
+	vec3 lambertian = lambertianStrength * texture(material.diffuseTexture, retTexCoord).rgb * light.diffuseColor;
+
 	vec3 refl = reflect(-lightDir, retNormal);
-	vec3 specular = pow(max(dot(refl, retViewDirection), 0.0f), SpecularStrength) * SpecularColor;
-	vec3 color = (AmbientLight + lambertian + specular) * DiffuseColor;
-	FragColor = vec4(color, 1.0f) * texture(sampler1, retTexCoord);
+	float specularStrength = pow(max(dot(refl, retViewDirection), 0.0f), material.specularStrength);
+	vec3 specular = specularStrength * texture(material.specularTexture, retTexCoord).rgb * light.specularColor;
+
+	FragColor = vec4(ambient + lambertian + specular, 1.0f);
 }

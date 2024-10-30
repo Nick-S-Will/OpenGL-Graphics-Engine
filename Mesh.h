@@ -22,7 +22,7 @@ public:
 
 	void Create(Shader* shader, GLenum textureWrapMode);
 	void Cleanup();
-	void Render(glm::mat4 vp, glm::vec3 lightPosition, glm::vec3 lightColor, float specularStrength, glm::vec3 cameraPosition);
+	void Render(glm::mat4 vp, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColor);
 
 private:
 	Shader* shader = nullptr;
@@ -43,7 +43,7 @@ private:
 	}
 
 	void BindAttributes();
-	void SetShaderVariables(glm::mat4 vp, glm::vec3 lightPosition, glm::vec3 lightColor, float specularStrength, glm::vec3 cameraPosition);
+	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColor);
 };
 
 #endif // !MESH_H

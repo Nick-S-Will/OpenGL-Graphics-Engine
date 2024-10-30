@@ -21,6 +21,7 @@ public:
 	void SetVec3(const char* name, glm::vec3 value);
 	void SetMat4(const char* name, glm::mat4 value);
 	void SetFloat(const char* name, float value);
+	void SetTextureSampler(const char* name, GLuint texUint, int texUintId, int value);
 	void Cleanup();
 
 private:

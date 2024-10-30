@@ -35,6 +35,16 @@ void Shader::SetFloat(const char* name, float value)
 	glUniform1f(location, value);
 }
 
+void Shader::SetTextureSampler(const char* name, GLuint texUint, int texUintId, int value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glActiveTexture(texUint);
+	glBindTexture(GL_TEXTURE_2D, value);
+	glUniform1i(location, texUintId);
+}
+
 void Shader::Cleanup()
 {
 	if (programID != 0)
@@ -90,8 +100,6 @@ void Shader::LoadAttributes()
 	verticesLocation = glGetAttribLocation(programID, "vertices");
 	normalsLocation = glGetAttribLocation(programID, "normals");
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
-	sampler1Location = glGetUniformLocation(programID, "sampler1");
-	sampler2Location = glGetUniformLocation(programID, "sampler2");
 }
 
 void Shader::EvaluateShader(int infoLength, GLuint id)
