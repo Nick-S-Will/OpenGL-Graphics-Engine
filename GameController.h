@@ -1,6 +1,7 @@
 #pragma once
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
+#define LIGHT_COUNT 5
 
 #include "StandardIncludes.h"
 #include "Camera.h"
@@ -21,7 +22,7 @@ private:
 	Shader diffuseShader = {};
 	Shader colorShader = {};
 	std::vector<Mesh*> boxMeshes;
-	Mesh* lightMesh = {};
+	std::vector<Mesh*> lightMeshes;
 
 	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
 	{

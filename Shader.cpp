@@ -11,20 +11,20 @@ void Shader::LoadShaders(const char* vertexFilePath, const char* fragmentFilePat
 	LoadAttributes();
 }
 
-void Shader::SetVec3(const char* name, glm::vec3 value)
-{
-	GLint location = glGetUniformLocation(programID, name);
-	if (location == -1) return;
-
-	glUniform3fv(location, 1, &value[0]);
-}
-
 void Shader::SetMat4(const char* name, glm::mat4 value)
 {
 	GLint location = glGetUniformLocation(programID, name);
 	if (location == -1) return;
 
 	glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+}
+
+void Shader::SetVec3(const char* name, glm::vec3 value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glUniform3fv(location, 1, &value[0]);
 }
 
 void Shader::SetFloat(const char* name, float value)
@@ -43,6 +43,16 @@ void Shader::SetTextureSampler(const char* name, GLuint texUint, int texUintId, 
 	glActiveTexture(texUint);
 	glBindTexture(GL_TEXTURE_2D, value);
 	glUniform1i(location, texUintId);
+}
+
+void Shader::SetArrayVec3(const std::string arrayName, int index, const std::string fieldName, glm::vec3 value)
+{
+	SetVec3((arrayName + "[" + std::to_string(index) + "]." + fieldName).c_str(), value);
+}
+
+void Shader::SetArrayFloat(const std::string arrayName, int index, const std::string fieldName, float value)
+{
+	SetFloat((arrayName + "[" + std::to_string(index) + "]." + fieldName).c_str(), value);
 }
 
 void Shader::Cleanup()

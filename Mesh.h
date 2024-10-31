@@ -19,10 +19,14 @@ public:
 	virtual ~Mesh();
 
 	glm::mat4 GetTransform() const { return glm::translate(glm::mat4(1), position) * GetRotationFromEulerAngles(eulerAngles) * glm::scale(glm::mat4(1), scale); }
+	glm::mat4 GetRotationMatrix() const { return GetRotationFromEulerAngles(eulerAngles); }
+	glm::vec3 GetRight() const { return GetRotationMatrix() * glm::vec4(1.f, 0.f, 0.f, 0.f); }
+	glm::vec3 GetUp() const { return GetRotationMatrix() * glm::vec4(0.f, 1.f, 0.f, 0.f); }
+	glm::vec3 GetForward() const { return GetRotationMatrix() * glm::vec4(0.f, 0.f, -1.f, 0.f); }
 
 	void Create(Shader* shader, GLenum textureWrapMode);
 	void Cleanup();
-	void Render(glm::mat4 vp, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColor);
+	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, glm::vec3 lightColor);
 
 private:
 	Shader* shader = nullptr;
@@ -43,7 +47,7 @@ private:
 	}
 
 	void BindAttributes();
-	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColor);
+	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, glm::vec3 lightColor);
 };
 
 #endif // !MESH_H

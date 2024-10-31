@@ -18,10 +18,12 @@ public:
 	GLuint GetSampler2() { return sampler2Location; }
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
-	void SetVec3(const char* name, glm::vec3 value);
 	void SetMat4(const char* name, glm::mat4 value);
+	void SetVec3(const char* name, glm::vec3 value);
 	void SetFloat(const char* name, float value);
 	void SetTextureSampler(const char* name, GLuint texUint, int texUintId, int value);
+	void SetArrayVec3(const std::string arrayName, int index, const std::string fieldName, glm::vec3 value);
+	void SetArrayFloat(const std::string arrayName, int index, const std::string fieldName, float value);
 	void Cleanup();
 
 private:
