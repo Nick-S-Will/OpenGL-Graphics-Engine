@@ -35,6 +35,14 @@ void Shader::SetFloat(const char* name, float value)
 	glUniform1f(location, value);
 }
 
+void Shader::SetInt(const char* name, int value)
+{
+	GLint location = glGetUniformLocation(programID, name);
+	if (location == -1) return;
+
+	glUniform1i(location, value);
+}
+
 void Shader::SetTextureSampler(const char* name, GLuint texUint, int texUintId, int value)
 {
 	GLint location = glGetUniformLocation(programID, name);
@@ -53,6 +61,11 @@ void Shader::SetArrayVec3(const std::string arrayName, int index, const std::str
 void Shader::SetArrayFloat(const std::string arrayName, int index, const std::string fieldName, float value)
 {
 	SetFloat((arrayName + "[" + std::to_string(index) + "]." + fieldName).c_str(), value);
+}
+
+void Shader::SetArrayInt(const std::string arrayName, int index, const std::string fieldName, int value)
+{
+	SetInt((arrayName + "[" + std::to_string(index) + "]." + fieldName).c_str(), value);
 }
 
 void Shader::Cleanup()

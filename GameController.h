@@ -1,7 +1,7 @@
 #pragma once
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
-#define LIGHT_COUNT 5
+#define LIGHT_COUNT 1
 
 #include "StandardIncludes.h"
 #include "Camera.h"

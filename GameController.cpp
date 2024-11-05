@@ -20,36 +20,29 @@ void GameController::RunGame()
 {
 	diffuseShader = Shader();
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
-	
+
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
 
 	GLenum textureWrapModes[] = { GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER };
 
-	for (int row = 0; row < 10; row++)
-	{
-		for (int column = 0; column < 10; column++)
-		{
-			Mesh* boxMesh = new Mesh();
-			boxMesh->Create(&diffuseShader, textureWrapModes[0]);
-			boxMesh->position = glm::vec3(0.f, row / 10.f, column / 10.f);
-			boxMesh->scale = glm::vec3(.1f);
+	Mesh* boxMesh = new Mesh();
+	boxMesh->Create(&diffuseShader, "./Assets/Models/Cube.obj", textureWrapModes[0]);
+	boxMesh->position = glm::vec3(0.f, 0.f, 0.f);
+	boxMesh->scale = glm::vec3(.1f);
 
-			boxMeshes.push_back(boxMesh);
-		}
-	}
+	boxMeshes.push_back(boxMesh);
 
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
-		lightMesh->Create(&colorShader, textureWrapModes[0]);
-		lightMesh->position = glm::vec3(.5f, .5f, .2f * i);
+		lightMesh->Create(&colorShader, "./Assets/Models/Sphere.obj", textureWrapModes[0]);
+		lightMesh->position = glm::vec3(.5f, 0.f, 0.f);
 		lightMesh->eulerAngles = glm::vec3(0.f, glm::radians(90.f), 0.f);
 		lightMesh->scale = glm::vec3(.1f);
 
 		lightMeshes.push_back(lightMesh);
 	}
-	
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	double lastTime = glfwGetTime();
@@ -72,7 +65,7 @@ void GameController::RunGame()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
-		for (auto boxMesh : boxMeshes) boxMesh->Render(vp, camera.position, lightMeshes, {1.f, 1.f, 1.f});
+		for (auto boxMesh : boxMeshes) boxMesh->Render(vp, camera.position, lightMeshes, { 1.f, 1.f, 1.f });
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.position, lightMeshes, glm::vec3(1.f));
 		glfwSwapBuffers(window);
 

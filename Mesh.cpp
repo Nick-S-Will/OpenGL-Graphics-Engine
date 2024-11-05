@@ -1,59 +1,44 @@
 #include "Mesh.h"
 #include "Shader.h"
+#include <OBJ_Loader.h>
 
 Mesh::~Mesh()
 {
 	Cleanup();
 }
 
-void Mesh::Create(Shader* shader, GLenum textureWrapMode)
+void Mesh::Create(Shader* shader, std::string filePath, GLenum textureWrapMode)
 {
 	this->shader = shader;
+
+	objl::Loader loader;
+	M_ASSERT(loader.LoadFile(filePath), "Failed to load mesh");
+
+	for (int i = 0; i < loader.LoadedMeshes.size(); i++)
+	{
+		objl::Mesh mesh = loader.LoadedMeshes[i];
+		for (int j = 0; j < mesh.Vertices.size(); j++)
+		{
+			vertexData.push_back(mesh.Vertices[j].Position.X);
+			vertexData.push_back(mesh.Vertices[j].Position.Y);
+			vertexData.push_back(mesh.Vertices[j].Position.Z);
+			vertexData.push_back(mesh.Vertices[j].Normal.X);
+			vertexData.push_back(mesh.Vertices[j].Normal.Y);
+			vertexData.push_back(mesh.Vertices[j].Normal.Z);
+			vertexData.push_back(mesh.Vertices[j].TextureCoordinate.X);
+			vertexData.push_back(mesh.Vertices[j].TextureCoordinate.Y);
+		}
+	}
+
+	std::string textureName = loader.LoadedMaterials[0].map_Kd;
+	auto lastSlashIndex = textureName.find_last_of("\\/");
+	if (lastSlashIndex != std::string::npos) textureName.erase(0, lastSlashIndex + 1);
+	
 	texture = Texture();
-	texture.LoadTexture("./Assets/Textures/MetalFrameWood.jpg", textureWrapMode);
+	texture.LoadTexture("./Assets/Textures/" + textureName, textureWrapMode);
 
 	texture2 = Texture();
-	texture2.LoadTexture("./Assets/Textures/MetalFrame.jpg", textureWrapMode);
-
-	vertexData = {
-		// Position				Normals				Texture Coords
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 1.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	1.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	0.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
-		0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 1.0f,
-		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
-		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,	0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 1.0f,
-		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 0.0f,
-		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,	0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,	0.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	0.0f, 1.0f
-	};
+	texture2.LoadTexture("./Assets/Textures/" + textureName, textureWrapMode);
 
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -72,9 +57,9 @@ void Mesh::Cleanup()
 
 void Mesh::BindAttributes()
 {
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glEnableVertexAttribArray(shader->GetVertices());
 	glVertexAttribPointer(shader->GetVertices(), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
 	glEnableVertexAttribArray(shader->GetNormals());
 	glVertexAttribPointer(shader->GetNormals(), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -105,7 +90,8 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 		shader->SetArrayFloat(arrayName, i, "linear", .09f);
 		shader->SetArrayFloat(arrayName, i, "quadratic", .032f);
 		shader->SetArrayFloat(arrayName, i, "coneAngle", glm::radians(15.f));
-		shader->SetArrayFloat(arrayName, i, "persistence", 30);
+		shader->SetArrayFloat(arrayName, i, "persistence", 30.f);
+		shader->SetArrayInt(arrayName, i, "isPointLight", 1);
 	}
 
 	shader->SetVec3("ambientColor", glm::vec3(.2f));

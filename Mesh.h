@@ -24,7 +24,7 @@ public:
 	glm::vec3 GetUp() const { return GetRotationMatrix() * glm::vec4(0.f, 1.f, 0.f, 0.f); }
 	glm::vec3 GetForward() const { return GetRotationMatrix() * glm::vec4(0.f, 0.f, -1.f, 0.f); }
 
-	void Create(Shader* shader, GLenum textureWrapMode);
+	void Create(Shader* shader, std::string filePath, GLenum textureWrapMode);
 	void Cleanup();
 	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, glm::vec3 lightColor);
 
