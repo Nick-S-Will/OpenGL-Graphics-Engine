@@ -1,6 +1,7 @@
 #include "GameController.h"
 #include "WindowController.h"
 #include "ToolWindow.h"
+#include "Font.h"
 
 void GameController::Initialize()
 {
@@ -9,6 +10,8 @@ void GameController::Initialize()
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.f, 0.f, 0.f, 0.f);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	srand(time(0));
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
@@ -23,6 +26,9 @@ void GameController::RunGame()
 
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
+
+	fontShader = Shader();
+	fontShader.LoadShaders("Font.vertexshader", "Font.fragmentshader");
 
 	GLenum textureWrapModes[] = { GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER };
 
@@ -43,6 +49,9 @@ void GameController::RunGame()
 
 		lightMeshes.push_back(lightMesh);
 	}
+
+	Font* arialFont = new Font();
+	arialFont->Create(&fontShader, "./Assets/Fonts/arial.ttf", 100);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	double lastTime = glfwGetTime();
@@ -67,14 +76,17 @@ void GameController::RunGame()
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
 		for (auto boxMesh : boxMeshes) boxMesh->Render(vp, camera.position, lightMeshes, { 1.f, 1.f, 1.f });
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.position, lightMeshes, glm::vec3(1.f));
+		arialFont->RenderText("Hello World", 10, 500, .5f, { 1.f, 1.f, 0.f });
 		glfwSwapBuffers(window);
 
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
 	diffuseShader.Cleanup();
 	colorShader.Cleanup();
+	fontShader.Cleanup();
 	for (auto boxMesh : boxMeshes) delete boxMesh;
 	boxMeshes.clear();
 	for (auto lightMesh : lightMeshes) delete lightMesh;
 	lightMeshes.clear();
+	delete arialFont;
 }

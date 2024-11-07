@@ -1,0 +1,19 @@
+#version 330
+
+struct Material
+{
+	sampler2D diffuseTexture;
+};
+
+in vec2 retTexCoords;
+
+uniform Material material;
+uniform vec3 textColor;
+
+out vec4 FragColor;
+
+void main()
+{
+	vec4 sampled = vec4(1.f, 1.f, 1.f, texture(material.diffuseTexture, retTexCoords).r);
+	FragColor = vec4(textColor, 1.f) * sampled;
+}

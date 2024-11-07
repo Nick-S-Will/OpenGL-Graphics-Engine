@@ -5,8 +5,8 @@
 
 #include "StandardIncludes.h"
 #include "Camera.h"
-#include "Shader.h"
 #include "Mesh.h"
+#include "Shader.h"
 
 class GameController : public Singleton<GameController>
 {
@@ -21,6 +21,7 @@ private:
 	Camera camera;
 	Shader diffuseShader = {};
 	Shader colorShader = {};
+	Shader fontShader = {};
 	std::vector<Mesh*> boxMeshes;
 	std::vector<Mesh*> lightMeshes;
 
