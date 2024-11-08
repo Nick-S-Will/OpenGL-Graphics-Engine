@@ -18,7 +18,8 @@ public:
 	glm::mat4 GetView() const { return view; }
 
 	void SetProjection(const Resolution& resolution);
-	void LookAt(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& up);
+	void RotateAround(const glm::vec3& point, const glm::vec3& axis, const float angle);
+	void LookAt(const glm::vec3& lookAt, const glm::vec3& up);
 
 private:
 	glm::mat4 projection = {};

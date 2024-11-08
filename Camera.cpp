@@ -12,8 +12,17 @@ void Camera::SetProjection(const Resolution& resolution)
 	projection = glm::perspective(glm::radians(resolution.fieldOfViewAngle), aspect, .1f, 1000.f);
 }
 
-void Camera::LookAt(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& up)
+void Camera::RotateAround(const glm::vec3& point, const glm::vec3& axis, const float angle)
 {
-	this->position = position;
+	glm::vec3 relativePosition = position - point;
+
+	glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.f), glm::radians(angle), axis);
+	glm::vec3 rotatedPosition = glm::vec3(rotationMatrix * glm::vec4(relativePosition, 1.f));
+
+	position = point + rotatedPosition;
+}
+
+void Camera::LookAt(const glm::vec3& lookAt, const glm::vec3& up)
+{
 	view = glm::lookAt(position, lookAt, up);
 }

@@ -12,11 +12,11 @@ void GameController::Initialize()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	srand(time(0));
+	srand((unsigned int)time(0));
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt(glm::vec3(2.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	camera.position = glm::vec3(0.f, 3.f, 3.f);
 }
 
 void GameController::RunGame()
@@ -30,22 +30,27 @@ void GameController::RunGame()
 	fontShader = Shader();
 	fontShader.LoadShaders("Font.vertexshader", "Font.fragmentshader");
 
-	GLenum textureWrapModes[] = { GL_REPEAT, GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER };
+	Mesh* mesh = new Mesh();
+	std::string modelName = "Monkey";
+	mesh->Create(&diffuseShader, "./Assets/Models/" + modelName + ".obj", GL_REPEAT);
+	mesh->scale = glm::vec3(.5f);
 
-	Mesh* boxMesh = new Mesh();
-	boxMesh->Create(&diffuseShader, "./Assets/Models/Cube.obj", textureWrapModes[0]);
-	boxMesh->position = glm::vec3(0.f, 0.f, 0.f);
-	boxMesh->scale = glm::vec3(.1f);
+	meshes.push_back(mesh);
 
-	boxMeshes.push_back(boxMesh);
-
+	std::vector<glm::vec3> colors = { {1.f, 1.f, 1.f}, {1.f, 0.f, 0.f} , {0.f, 1.f, 0.f} , {0.f, 0.f, 1.f} };
+	std::vector<LightType> lightTypes{ LightType::Directional, LightType::Point, LightType::Directional, LightType::Spot };
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
-		lightMesh->Create(&colorShader, "./Assets/Models/Sphere.obj", textureWrapModes[0]);
-		lightMesh->position = glm::vec3(.5f, 0.f, 0.f);
-		lightMesh->eulerAngles = glm::vec3(0.f, glm::radians(90.f), 0.f);
+		lightMesh->Create(&colorShader, "./Assets/Models/Sphere.obj", GL_REPEAT);
+		float xDirection = i % 2 == 0 ? 0.f : ((i + 1) % 4 == 0 ? 1.f : -1.f);
+		float zDirection = i % 2 == 0 ? (i % 4 == 0 ? 1.f : -1.f) : 0.f;
+		lightMesh->position = glm::vec3(xDirection, 0.f, zDirection);
+		lightMesh->eulerAngles = glm::vec3(0.f, glm::radians(-90.f * i), 0.f);
 		lightMesh->scale = glm::vec3(.1f);
+		lightMesh->color = colors[i % colors.size()];
+		lightMesh->lightType = lightTypes[i % lightTypes.size()];
+		lightMesh->isEnabled = i == 0;
 
 		lightMeshes.push_back(lightMesh);
 	}
@@ -55,28 +60,39 @@ void GameController::RunGame()
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	double lastTime = glfwGetTime();
-	bool changeCameraPressed = false, changeResolutionPressed = false;
+	float timeSinceLightChange = 0;
+	int enabledLightIndex = 0;
 	do
 	{
 		glfwPollEvents();
-		float deltaTime = glfwGetTime() - lastTime;
+		float deltaTime = (float)(glfwGetTime() - lastTime);
 		lastTime += deltaTime;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) lightMeshes[0]->position -= .5f * deltaTime * lightMeshes[0]->GetRight();
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) lightMeshes[0]->position += .5f * deltaTime * lightMeshes[0]->GetRight();
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) lightMeshes[0]->position -= .5f * deltaTime * lightMeshes[0]->GetForward();
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) lightMeshes[0]->position += .5f * deltaTime * lightMeshes[0]->GetForward();
+		timeSinceLightChange += deltaTime;
+		if (timeSinceLightChange > 2.f)
+		{
+			enabledLightIndex = (enabledLightIndex + 1) % lightMeshes.size();
+			timeSinceLightChange = 0.f;
+			for (int i = 0; i < lightMeshes.size(); i++) lightMeshes[i]->isEnabled = enabledLightIndex == i;
+		}
 
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) lightMeshes[0]->eulerAngles.x -= 2.f * deltaTime;
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) lightMeshes[0]->eulerAngles.x += 2.f * deltaTime;
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) lightMeshes[0]->eulerAngles.y += 2.f * deltaTime;
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) lightMeshes[0]->eulerAngles.y -= 2.f * deltaTime;
+		glm::vec3 rotationAxis = { 0.f, 1.f, 0.f };
+		camera.RotateAround(meshes[0]->position, rotationAxis, -45.f * deltaTime);
+		camera.LookAt(meshes[0]->position, rotationAxis);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
-		for (auto boxMesh : boxMeshes) boxMesh->Render(vp, camera.position, lightMeshes, { 1.f, 1.f, 1.f });
-		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.position, lightMeshes, glm::vec3(1.f));
-		arialFont->RenderText("Hello World", 10, 500, .5f, { 1.f, 1.f, 0.f });
+		for (auto mesh : meshes) mesh->Render(vp, camera.position, lightMeshes);
+		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.position, lightMeshes);
+
+		arialFont->RenderText("Nicholas", 10.f, 50.f, .5f, { 1.f, 1.f, 1.f });
+		
+		arialFont->RenderText("Enabled Light:", 10.f, 150.f, .5f, {1.f, 1.f, 1.f});
+		arialFont->RenderText("Type: " + lightMeshes[enabledLightIndex]->GetLightTypeName(), 10.f, 200.f, .5f, {1.f, 1.f, 1.f});
+		arialFont->RenderText("Color: R - " + std::to_string(lightMeshes[enabledLightIndex]->color.x) + ", G - " + std::to_string(lightMeshes[enabledLightIndex]->color.y) + ", B - " + std::to_string(lightMeshes[enabledLightIndex]->color.z), 10.f, 250.f, .5f, {1.f, 1.f, 1.f});
+
+		arialFont->RenderText("Model: " + modelName, 10.f, 350.f, .5f, {1.f, 1.f, 1.f});
+
 		glfwSwapBuffers(window);
 
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
@@ -84,8 +100,8 @@ void GameController::RunGame()
 	diffuseShader.Cleanup();
 	colorShader.Cleanup();
 	fontShader.Cleanup();
-	for (auto boxMesh : boxMeshes) delete boxMesh;
-	boxMeshes.clear();
+	for (auto boxMesh : meshes) delete boxMesh;
+	meshes.clear();
 	for (auto lightMesh : lightMeshes) delete lightMesh;
 	lightMeshes.clear();
 	delete arialFont;

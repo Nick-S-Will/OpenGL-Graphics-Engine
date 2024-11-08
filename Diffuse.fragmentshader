@@ -1,5 +1,9 @@
 #version 330 // OpenGL version 3.3
-#define LIGHT_COUNT 1
+#define LIGHT_COUNT 4
+
+const int DIRECTIONAL_LIGHT = 0;
+const int POINT_LIGHT = 1;
+const int SPOT_LIGHT = 2;
 
 struct Material
 {
@@ -13,7 +17,6 @@ struct Light
 	vec3 position;
 	vec3 direction;
 	vec3 color;
-	vec3 diffuseColor;
 	vec3 specularColor;
 
 	float constant;
@@ -22,7 +25,8 @@ struct Light
 
 	float coneAngle;
 	float persistence;
-	bool isPointLight;
+	int type;
+	bool isEnabled;
 };
 
 in vec3 retPos;
@@ -42,22 +46,24 @@ vec4 getAmbientColor()
 	return vec4(ambient, 1.f);
 }
 
-vec4 getLitColor(Light light, float alignmentRatio)
+vec4 getLitColor(Light light, float alignmentThreshold, float alignmentFactor)
 {
-	vec3 directionToLight = normalize(light.position - retPos);
+	if (light.type == SPOT_LIGHT && alignmentThreshold > alignmentFactor) return vec4(0.f);
+
+	vec3 directionToLight = light.type == DIRECTIONAL_LIGHT ? -light.direction : normalize(light.position - retPos);
 	float lambertianStrength = dot(directionToLight, retNormal);
-	vec3 lambertian = lambertianStrength * texture(material.diffuseTexture, retTexCoord).rgb * light.diffuseColor;
+	vec3 lambertian = lambertianStrength * texture(material.diffuseTexture, retTexCoord).rgb * light.color;
 
 	vec3 refl = reflect(-directionToLight, retNormal);
 	float specularStrength = pow(max(dot(refl, retViewDirection), 0.f), material.specularStrength);
 	vec3 specular = specularStrength * texture(material.specularTexture, retTexCoord).rgb * light.specularColor;
 
 	vec3 litColor = lambertian + specular;
-	if (!light.isPointLight)
+	if (light.type == SPOT_LIGHT)
 	{
 		float lightDistance = length(light.position - retPos);
 		float attenuation = 1.f / (light.constant + light.linear * lightDistance + light.quadratic * (lightDistance * lightDistance));
-		attenuation *= 1 - pow(clamp(alignmentRatio, 0.f, 1.f), light.persistence);
+		attenuation *= 1 - pow(clamp(alignmentThreshold / alignmentFactor, 0.f, 1.f), light.persistence);
 		litColor *= attenuation;
 	}
 
@@ -69,10 +75,12 @@ void main()
 	vec4 color = getAmbientColor();
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
+		if (!lights[i].isEnabled) continue;
+
 		vec3 lightDirectionToPixel = normalize(retPos - lights[i].position);
 		float alignmentThreshold = cos(lights[i].coneAngle);
 		float alignmentFactor = dot(normalize(lights[i].direction), lightDirectionToPixel);
-		if (lights[i].isPointLight || alignmentFactor > alignmentThreshold) color += getLitColor(lights[i], alignmentThreshold / alignmentFactor);
+		color += getLitColor(lights[i], alignmentThreshold, alignmentFactor);
 	}
 	
 	FragColor = color;

@@ -7,13 +7,22 @@
 
 class Shader;
 
+enum class LightType : int {
+	Directional = 0,
+	Point = 1,
+	Spot = 2
+};
+
 class Mesh
 {
 public:
 	glm::vec3 position;
 	glm::vec3 eulerAngles;
 	glm::vec3 scale = glm::vec3(1.f);
+	glm::vec3 color = glm::vec3(1.f);
 	glm::vec2 textureOffset;
+	LightType lightType;
+	bool isEnabled = true;
 
 	Mesh() = default;
 	virtual ~Mesh();
@@ -23,10 +32,19 @@ public:
 	glm::vec3 GetRight() const { return GetRotationMatrix() * glm::vec4(1.f, 0.f, 0.f, 0.f); }
 	glm::vec3 GetUp() const { return GetRotationMatrix() * glm::vec4(0.f, 1.f, 0.f, 0.f); }
 	glm::vec3 GetForward() const { return GetRotationMatrix() * glm::vec4(0.f, 0.f, -1.f, 0.f); }
+	std::string GetLightTypeName() const
+	{
+		switch (lightType) {
+		case LightType::Directional: return "Directional";
+		case LightType::Point: return "Point";
+		case LightType::Spot: return "Spot";
+		default: return "Unknown";
+		}
+	}
 
 	void Create(Shader* shader, std::string filePath, GLenum textureWrapMode);
 	void Cleanup();
-	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, glm::vec3 lightColor);
+	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 
 private:
 	Shader* shader = nullptr;
@@ -47,7 +65,7 @@ private:
 	}
 
 	void BindAttributes();
-	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, glm::vec3 lightColor);
+	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 };
 
 #endif // !MESH_H

@@ -1,12 +1,12 @@
 #pragma once
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
-#define LIGHT_COUNT 1
+#define LIGHT_COUNT 4
 
 #include "StandardIncludes.h"
 #include "Camera.h"
-#include "Mesh.h"
 #include "Shader.h"
+#include "Mesh.h"
 
 class GameController : public Singleton<GameController>
 {
@@ -22,7 +22,7 @@ private:
 	Shader diffuseShader = {};
 	Shader colorShader = {};
 	Shader fontShader = {};
-	std::vector<Mesh*> boxMeshes;
+	std::vector<Mesh*> meshes;
 	std::vector<Mesh*> lightMeshes;
 
 	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
