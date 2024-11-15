@@ -9,5 +9,5 @@ out vec3 retTexCoords;
 void main()
 {
 	retTexCoords = vertices;
-	gl_Position = PV * vec4(vertices, 1.f);
+	gl_Position = PV * vec4(500.f * vertices, 1.f);
 }

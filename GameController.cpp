@@ -17,7 +17,7 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 0.f, 0.f, 0.1f }, { 0.f, 0.f, 1.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 0.f, 0.f, 5.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
@@ -50,12 +50,7 @@ void GameController::RunGame()
 #pragma region Meshes
 	Mesh* mesh = new Mesh();
 	mesh->Create(&diffuseShader, "./Assets/Models/Monkey.obj", GL_REPEAT);
-	mesh->position = { 0.f, 0.f, -5.f };
-	meshes.push_back(mesh);
-
-	mesh = new Mesh();
-	mesh->Create(&diffuseShader, "./Assets/Models/Cube.obj", GL_REPEAT);
-	mesh->position = { 0.f, 0.f, 5.f };
+	mesh->position = { 0.f, 0.f, 0.f };
 	meshes.push_back(mesh);
 
 	std::vector<glm::vec3> colors = { {1.f, 1.f, 1.f} };
@@ -86,7 +81,8 @@ void GameController::RunGame()
 		lastTime += deltaTime;
 
 		camera.RotateAround({ 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f }, -45.f * deltaTime);
-
+		meshes[0]->eulerAngles.y += glm::radians(45.f * deltaTime);
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
@@ -94,12 +90,8 @@ void GameController::RunGame()
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
 		for (auto mesh : meshes) mesh->Render(vp, camera.GetPosition(), lightMeshes);
 
-		arialFont->RenderText("Nicholas", 10.f, 50.f, .5f, { 1.f, 1.f, 1.f });
+		arialFont->RenderText("Nicholas", 10.f, 50.f, .5f, { 0.f, 0.f, 0.f });
 		
-		arialFont->RenderText("Enabled Light:", 10.f, 150.f, .5f, {1.f, 1.f, 1.f});
-		arialFont->RenderText("Type: " + lightMeshes[enabledLightIndex]->GetLightTypeName(), 10.f, 200.f, .5f, {1.f, 1.f, 1.f});
-		arialFont->RenderText("Color: R = " + std::to_string(lightMeshes[enabledLightIndex]->color.x) + ", G = " + std::to_string(lightMeshes[enabledLightIndex]->color.y) + ", B = " + std::to_string(lightMeshes[enabledLightIndex]->color.z), 10.f, 250.f, .5f, {1.f, 1.f, 1.f});
-
 		glfwSwapBuffers(window);
 
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
