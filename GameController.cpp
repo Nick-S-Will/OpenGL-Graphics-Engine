@@ -8,7 +8,7 @@ void GameController::Initialize()
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	M_ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW.");
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClearColor(.2f, .2f, .2f, 0.f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -16,11 +16,12 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.position = glm::vec3(0.f, 3.f, 3.f);
+	camera.position = glm::vec3(0.f, 2.f, 7.f);
 }
 
 void GameController::RunGame()
 {
+#pragma region Shaders
 	diffuseShader = Shader();
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
@@ -29,12 +30,20 @@ void GameController::RunGame()
 
 	fontShader = Shader();
 	fontShader.LoadShaders("Font.vertexshader", "Font.fragmentshader");
+#pragma endregion
 
+#pragma region Meshes
 	Mesh* mesh = new Mesh();
-	std::string modelName = "Monkey";
-	mesh->Create(&diffuseShader, "./Assets/Models/" + modelName + ".obj", GL_REPEAT);
-	mesh->scale = glm::vec3(.5f);
+	mesh->Create(&diffuseShader, "./Assets/Models/Monkey.obj", GL_REPEAT);
+	meshes.push_back(mesh);
 
+	mesh = new Mesh();
+	mesh->Create(&diffuseShader, "./Assets/Models/Plane.obj", GL_REPEAT);
+	meshes.push_back(mesh);
+
+	mesh = new Mesh();
+	mesh->Create(&diffuseShader, "./Assets/Models/Window.obj", GL_REPEAT);
+	mesh->position = glm::vec3(0.f, 0.f, 1.f);
 	meshes.push_back(mesh);
 
 	std::vector<glm::vec3> colors = { {1.f, 1.f, 1.f}, {1.f, 0.f, 0.f} , {0.f, 1.f, 0.f} , {0.f, 0.f, 1.f} };
@@ -43,9 +52,10 @@ void GameController::RunGame()
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, "./Assets/Models/Sphere.obj", GL_REPEAT);
+		float distance = 3.f;
 		float xDirection = i % 2 == 0 ? 0.f : ((i + 1) % 4 == 0 ? 1.f : -1.f);
 		float zDirection = i % 2 == 0 ? (i % 4 == 0 ? 1.f : -1.f) : 0.f;
-		lightMesh->position = glm::vec3(xDirection, 0.f, zDirection);
+		lightMesh->position = glm::vec3(distance * xDirection, 0.f, distance * zDirection);
 		lightMesh->eulerAngles = glm::vec3(0.f, glm::radians(-90.f * i), 0.f);
 		lightMesh->scale = glm::vec3(.1f);
 		lightMesh->color = colors[i % colors.size()];
@@ -54,26 +64,19 @@ void GameController::RunGame()
 
 		lightMeshes.push_back(lightMesh);
 	}
+#pragma endregion
 
 	Font* arialFont = new Font();
 	arialFont->Create(&fontShader, "./Assets/Fonts/arial.ttf", 100);
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	double lastTime = glfwGetTime();
-	float timeSinceLightChange = 0;
 	int enabledLightIndex = 0;
 	do
 	{
 		glfwPollEvents();
 		float deltaTime = (float)(glfwGetTime() - lastTime);
 		lastTime += deltaTime;
-		timeSinceLightChange += deltaTime;
-		if (timeSinceLightChange > 2.f)
-		{
-			enabledLightIndex = (enabledLightIndex + 1) % lightMeshes.size();
-			timeSinceLightChange = 0.f;
-			for (int i = 0; i < lightMeshes.size(); i++) lightMeshes[i]->isEnabled = enabledLightIndex == i;
-		}
 
 		glm::vec3 rotationAxis = { 0.f, 1.f, 0.f };
 		camera.RotateAround(meshes[0]->position, rotationAxis, -45.f * deltaTime);
@@ -90,8 +93,6 @@ void GameController::RunGame()
 		arialFont->RenderText("Enabled Light:", 10.f, 150.f, .5f, {1.f, 1.f, 1.f});
 		arialFont->RenderText("Type: " + lightMeshes[enabledLightIndex]->GetLightTypeName(), 10.f, 200.f, .5f, {1.f, 1.f, 1.f});
 		arialFont->RenderText("Color: R - " + std::to_string(lightMeshes[enabledLightIndex]->color.x) + ", G - " + std::to_string(lightMeshes[enabledLightIndex]->color.y) + ", B - " + std::to_string(lightMeshes[enabledLightIndex]->color.z), 10.f, 250.f, .5f, {1.f, 1.f, 1.f});
-
-		arialFont->RenderText("Model: " + modelName, 10.f, 350.f, .5f, {1.f, 1.f, 1.f});
 
 		glfwSwapBuffers(window);
 

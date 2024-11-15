@@ -19,6 +19,8 @@ private:
 	int height = -1;
 	int channelCount = -1;
 	GLuint texture = 0;
+
+	static bool EndsWith(const std::string& text, const std::string& suffix);
 };
 
 #endif // !TEXTURE_H

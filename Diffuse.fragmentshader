@@ -40,19 +40,13 @@ uniform vec3 ambientColor;
 
 out vec4 FragColor;
 
-vec4 getAmbientColor()
+vec3 getLitColor(Light light, float alignmentThreshold, float alignmentFactor, vec3 diffuseColor)
 {
-	vec3 ambient = texture(material.diffuseTexture, retTexCoord).rgb * ambientColor;
-	return vec4(ambient, 1.f);
-}
-
-vec4 getLitColor(Light light, float alignmentThreshold, float alignmentFactor)
-{
-	if (light.type == SPOT_LIGHT && alignmentThreshold > alignmentFactor) return vec4(0.f);
+	if (light.type == SPOT_LIGHT && alignmentThreshold > alignmentFactor) return vec3(0.f);
 
 	vec3 directionToLight = light.type == DIRECTIONAL_LIGHT ? -light.direction : normalize(light.position - retPos);
 	float lambertianStrength = dot(directionToLight, retNormal);
-	vec3 lambertian = lambertianStrength * texture(material.diffuseTexture, retTexCoord).rgb * light.color;
+	vec3 lambertian = lambertianStrength * diffuseColor * light.color;
 
 	vec3 refl = reflect(-directionToLight, retNormal);
 	float specularStrength = pow(max(dot(refl, retViewDirection), 0.f), material.specularStrength);
@@ -67,12 +61,15 @@ vec4 getLitColor(Light light, float alignmentThreshold, float alignmentFactor)
 		litColor *= attenuation;
 	}
 
-	return vec4(litColor, 1.f);
+	return litColor;
 }
 
 void main()
 {
-	vec4 color = getAmbientColor();
+	vec4 diffuseColor = texture(material.diffuseTexture, retTexCoord);
+	if (diffuseColor.a == 0) discard;
+
+	vec3 color = diffuseColor.rgb * ambientColor;
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		if (!lights[i].isEnabled) continue;
@@ -80,8 +77,8 @@ void main()
 		vec3 lightDirectionToPixel = normalize(retPos - lights[i].position);
 		float alignmentThreshold = cos(lights[i].coneAngle);
 		float alignmentFactor = dot(normalize(lights[i].direction), lightDirectionToPixel);
-		color += getLitColor(lights[i], alignmentThreshold, alignmentFactor);
+		color += getLitColor(lights[i], alignmentThreshold, alignmentFactor, diffuseColor.rgb);
 	}
 	
-	FragColor = color;
+	FragColor = vec4(color, diffuseColor.a);
 }
