@@ -12,6 +12,7 @@ public:
 	GLuint GetTexture() const { return texture; }
 
 	void LoadTexture(std::string fileName, GLenum wrapMode);
+	void LoadCubemap(std::vector<std::string> faceFileNames);
 	void CleanUp();
 
 private:

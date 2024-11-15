@@ -1,5 +1,5 @@
 #version 330 // OpenGL version 3.3
-#define LIGHT_COUNT 4
+#define LIGHT_COUNT 1
 
 const int DIRECTIONAL_LIGHT = 0;
 const int POINT_LIGHT = 1;

@@ -12,16 +12,20 @@ void GameController::Initialize()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_CULL_FACE);
 	srand((unsigned int)time(0));
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.position = glm::vec3(0.f, 2.f, 7.f);
+	camera.LookAt({ 0.f, 0.f, 0.1f }, { 0.f, 0.f, 1.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
 {
 #pragma region Shaders
+	skyboxShader = Shader();
+	skyboxShader.LoadShaders("Skybox.vertexshader", "Skybox.fragmentshader");
+
 	diffuseShader = Shader();
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
@@ -32,35 +36,38 @@ void GameController::RunGame()
 	fontShader.LoadShaders("Font.vertexshader", "Font.fragmentshader");
 #pragma endregion
 
+#pragma region Skybox
+	skybox = new Skybox();
+	skybox->Create(&skyboxShader, "./Assets/Models/Skybox.obj",
+		{ "./Assets/Textures/Skybox/right.jpg",
+		  "./Assets/Textures/Skybox/left.jpg",
+		  "./Assets/Textures/Skybox/top.jpg",
+		  "./Assets/Textures/Skybox/bottom.jpg",
+		  "./Assets/Textures/Skybox/front.jpg",
+		  "./Assets/Textures/Skybox/back.jpg" });
+#pragma endregion
+
 #pragma region Meshes
 	Mesh* mesh = new Mesh();
 	mesh->Create(&diffuseShader, "./Assets/Models/Monkey.obj", GL_REPEAT);
+	mesh->position = { 0.f, 0.f, -5.f };
 	meshes.push_back(mesh);
 
 	mesh = new Mesh();
-	mesh->Create(&diffuseShader, "./Assets/Models/Plane.obj", GL_REPEAT);
+	mesh->Create(&diffuseShader, "./Assets/Models/Cube.obj", GL_REPEAT);
+	mesh->position = { 0.f, 0.f, 5.f };
 	meshes.push_back(mesh);
 
-	mesh = new Mesh();
-	mesh->Create(&diffuseShader, "./Assets/Models/Window.obj", GL_REPEAT);
-	mesh->position = glm::vec3(0.f, 0.f, 1.f);
-	meshes.push_back(mesh);
-
-	std::vector<glm::vec3> colors = { {1.f, 1.f, 1.f}, {1.f, 0.f, 0.f} , {0.f, 1.f, 0.f} , {0.f, 0.f, 1.f} };
-	std::vector<LightType> lightTypes{ LightType::Directional, LightType::Point, LightType::Directional, LightType::Spot };
+	std::vector<glm::vec3> colors = { {1.f, 1.f, 1.f} };
+	std::vector<LightType> lightTypes{  LightType::Point };
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, "./Assets/Models/Sphere.obj", GL_REPEAT);
-		float distance = 3.f;
-		float xDirection = i % 2 == 0 ? 0.f : ((i + 1) % 4 == 0 ? 1.f : -1.f);
-		float zDirection = i % 2 == 0 ? (i % 4 == 0 ? 1.f : -1.f) : 0.f;
-		lightMesh->position = glm::vec3(distance * xDirection, 0.f, distance * zDirection);
-		lightMesh->eulerAngles = glm::vec3(0.f, glm::radians(-90.f * i), 0.f);
+		lightMesh->position = glm::vec3(0.f, 5.f, 0.f);
 		lightMesh->scale = glm::vec3(.1f);
 		lightMesh->color = colors[i % colors.size()];
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
-		lightMesh->isEnabled = i == 0;
 
 		lightMeshes.push_back(lightMesh);
 	}
@@ -78,29 +85,30 @@ void GameController::RunGame()
 		float deltaTime = (float)(glfwGetTime() - lastTime);
 		lastTime += deltaTime;
 
-		glm::vec3 rotationAxis = { 0.f, 1.f, 0.f };
-		camera.RotateAround(meshes[0]->position, rotationAxis, -45.f * deltaTime);
-		camera.LookAt(meshes[0]->position, rotationAxis);
+		camera.RotateAround({ 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f }, -45.f * deltaTime);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
-		for (auto mesh : meshes) mesh->Render(vp, camera.position, lightMeshes);
-		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.position, lightMeshes);
+		skybox->Render(vp);
+		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
+		for (auto mesh : meshes) mesh->Render(vp, camera.GetPosition(), lightMeshes);
 
 		arialFont->RenderText("Nicholas", 10.f, 50.f, .5f, { 1.f, 1.f, 1.f });
 		
 		arialFont->RenderText("Enabled Light:", 10.f, 150.f, .5f, {1.f, 1.f, 1.f});
 		arialFont->RenderText("Type: " + lightMeshes[enabledLightIndex]->GetLightTypeName(), 10.f, 200.f, .5f, {1.f, 1.f, 1.f});
-		arialFont->RenderText("Color: R - " + std::to_string(lightMeshes[enabledLightIndex]->color.x) + ", G - " + std::to_string(lightMeshes[enabledLightIndex]->color.y) + ", B - " + std::to_string(lightMeshes[enabledLightIndex]->color.z), 10.f, 250.f, .5f, {1.f, 1.f, 1.f});
+		arialFont->RenderText("Color: R = " + std::to_string(lightMeshes[enabledLightIndex]->color.x) + ", G = " + std::to_string(lightMeshes[enabledLightIndex]->color.y) + ", B = " + std::to_string(lightMeshes[enabledLightIndex]->color.z), 10.f, 250.f, .5f, {1.f, 1.f, 1.f});
 
 		glfwSwapBuffers(window);
 
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
+	skyboxShader.Cleanup();
 	diffuseShader.Cleanup();
 	colorShader.Cleanup();
 	fontShader.Cleanup();
+	delete skybox;
 	for (auto boxMesh : meshes) delete boxMesh;
 	meshes.clear();
 	for (auto lightMesh : lightMeshes) delete lightMesh;

@@ -73,8 +73,8 @@ void Shader::Cleanup()
 	if (programID != 0)
 	{
 		glDeleteProgram(programID);
+		programID = 0;
 	}
-	programID = 0;
 }
 
 void Shader::CreateShaderProgram(const char* vertexFilePath, const char* fragmentFilePath)
