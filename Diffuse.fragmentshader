@@ -10,6 +10,7 @@ struct Material
 	float specularStrength;
 	sampler2D diffuseTexture;
 	sampler2D specularTexture;
+	sampler2D normalTexture;
 };
 
 struct Light
@@ -29,14 +30,17 @@ struct Light
 	bool isEnabled;
 };
 
+in mat4 retWorld;
 in vec3 retPos;
 in vec3 retNormal;
 in vec2 retTexCoord;
 in vec3 retViewDirection;
+in mat3 retTBN;
 
 uniform Material material;
 uniform Light lights[LIGHT_COUNT];
 uniform vec3 ambientColor;
+uniform bool NormalMapsEnabled;
 
 out vec4 FragColor;
 
@@ -45,10 +49,18 @@ vec3 getLitColor(Light light, float alignmentThreshold, float alignmentFactor, v
 	if (light.type == SPOT_LIGHT && alignmentThreshold > alignmentFactor) return vec3(0.f);
 
 	vec3 directionToLight = light.type == DIRECTIONAL_LIGHT ? -light.direction : normalize(light.position - retPos);
-	float lambertianStrength = dot(directionToLight, retNormal);
+	vec3 normal = retNormal;
+	if (NormalMapsEnabled)
+	{
+		normal = texture(material.normalTexture, retTexCoord).rgb;
+		normal = normal * 2.0 - 1.0;
+		normal = normalize(retTBN * normal);
+	}
+
+	float lambertianStrength = dot(directionToLight, normal);
 	vec3 lambertian = lambertianStrength * diffuseColor * light.color;
 
-	vec3 refl = reflect(-directionToLight, retNormal);
+	vec3 refl = reflect(-directionToLight, normal);
 	float specularStrength = pow(max(dot(refl, retViewDirection), 0.f), material.specularStrength);
 	vec3 specular = specularStrength * texture(material.specularTexture, retTexCoord).rgb * light.specularColor;
 

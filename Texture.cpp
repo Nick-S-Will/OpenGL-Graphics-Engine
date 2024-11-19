@@ -8,7 +8,7 @@ Texture::~Texture()
 	CleanUp();
 }
 
-void Texture::LoadTexture(std::string fileName, GLenum wrapMode)
+void Texture::LoadTexture(std::string filePath, GLenum wrapMode)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -19,10 +19,10 @@ void Texture::LoadTexture(std::string fileName, GLenum wrapMode)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	stbi_set_flip_vertically_on_load(true);
-	GLubyte* data = stbi_load(fileName.c_str(), &width, &height, &channelCount, 0);
+	GLubyte* data = stbi_load(filePath.c_str(), &width, &height, &channelCount, 0);
 	M_ASSERT(data != nullptr, "Failed to load texture");
 
-	GLenum colorMode = EndsWith(fileName, ".png") ? GL_RGBA : GL_RGB;
+	GLenum colorMode = EndsWith(filePath, ".png") ? GL_RGBA : GL_RGB;
 	glTexImage2D(GL_TEXTURE_2D, 0, colorMode, width, height, 0, colorMode, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 

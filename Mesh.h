@@ -4,6 +4,7 @@
 
 #include "StandardIncludes.h"
 #include "Texture.h"
+#include "OBJ_Loader.h"
 
 class Shader;
 
@@ -41,19 +42,43 @@ public:
 		default: return "Unknown";
 		}
 	}
+	bool HasNormalMapEnabled() { return vertexStride == 14; }
 
-	void Create(Shader* shader, std::string filePath, GLenum textureWrapMode);
+	void Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode);
 	void Cleanup();
 	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 
 private:
 	Shader* shader = nullptr;
 	Texture texture = {};
-	Texture texture2 = {};
+	Texture specularTexture = {};
+	Texture normalTexture = {};
 	GLuint vertexBuffer = 0;
 	GLuint indexBuffer = 0;
 	std::vector<GLfloat> vertexData;
 	std::vector<GLubyte> indexData;
+	int vertexStride = 0;
+
+	void BindAttributes();
+	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
+	
+	void static CalculateTangents(std::vector<objl::Vertex> vertices, objl::Vector3& tangent, objl::Vector3& bitangent)
+	{
+		objl::Vector3 edge1 = vertices[1].Position - vertices[0].Position;
+		objl::Vector3 edge2 = vertices[2].Position - vertices[0].Position;
+		objl::Vector2 deltaUV1 = vertices[1].TextureCoordinate - vertices[0].TextureCoordinate;
+		objl::Vector2 deltaUV2 = vertices[2].TextureCoordinate - vertices[0].TextureCoordinate;
+
+		float f = 1.f / (deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y);
+
+		tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
+		tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
+		tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
+
+		bitangent.X = f * (-deltaUV2.X * edge1.X + deltaUV1.X * edge2.X);
+		bitangent.Y = f * (-deltaUV2.X * edge1.Y + deltaUV1.X * edge2.Y);
+		bitangent.Z = f * (-deltaUV2.X * edge1.Z + deltaUV1.X * edge2.Z);
+	}
 
 	static glm::mat4 GetRotationFromEulerAngles(const glm::vec3& eulerAngles)
 	{
@@ -64,8 +89,13 @@ private:
 		return rotationZ * rotationY * rotationX;
 	}
 
-	void BindAttributes();
-	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
+	static std::string GetFileName(std::string& filePath)
+	{
+		const size_t last_slash_index = filePath.find_last_of("\\/");
+		if (std::string::npos != last_slash_index) filePath.erase(0, last_slash_index + 1);
+
+		return filePath;
+	}
 };
 
 #endif // !MESH_H

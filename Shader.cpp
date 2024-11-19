@@ -122,6 +122,8 @@ void Shader::LoadAttributes()
 {
 	verticesLocation = glGetAttribLocation(programID, "vertices");
 	normalsLocation = glGetAttribLocation(programID, "normals");
+	tangentsLocation = glGetAttribLocation(programID, "tangents");
+	bitangentsLocation = glGetAttribLocation(programID, "bitangents");
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
 }
 

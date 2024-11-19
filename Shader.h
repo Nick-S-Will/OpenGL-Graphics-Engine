@@ -13,9 +13,9 @@ public:
 	GLuint GetProgramID() const { return programID; }
 	GLuint GetVertices() const { return verticesLocation; }
 	GLuint GetNormals() const { return normalsLocation; }
+	GLuint GetTangents() { return tangentsLocation; }
+	GLuint GetBitangents() { return bitangentsLocation; }
 	GLuint GetTextureCoords() { return textureCoordsLocation; }
-	GLuint GetSampler1() { return sampler1Location; }
-	GLuint GetSampler2() { return sampler2Location; }
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
 	void SetMat4(const char* name, glm::mat4 value);
@@ -37,9 +37,9 @@ private:
 	GLuint programID = 0;
 	GLuint verticesLocation = 0;
 	GLuint normalsLocation = 0;
+	GLuint tangentsLocation = 0;
+	GLuint bitangentsLocation = 0;
 	GLuint textureCoordsLocation = 0;
-	GLuint sampler1Location = 0;
-	GLuint sampler2Location = 0;
 	GLint result = GL_FALSE;
 	int infoLogLength = 0;
 };
