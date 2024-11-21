@@ -27,6 +27,7 @@ private:
 	std::vector<Mesh*> meshes;
 	std::vector<Mesh*> lightMeshes;
 	Skybox* skybox = nullptr;
+	GLuint vao;
 
 	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
 	{

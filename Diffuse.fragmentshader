@@ -30,7 +30,6 @@ struct Light
 	bool isEnabled;
 };
 
-in mat4 retWorld;
 in vec3 retPos;
 in vec3 retNormal;
 in vec2 retTexCoord;

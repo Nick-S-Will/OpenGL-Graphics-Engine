@@ -43,8 +43,9 @@ public:
 		}
 	}
 	bool HasNormalMapEnabled() { return vertexStride == 14; }
+	bool HasInstancingEnabled() { return instanceCount > 1; }
 
-	void Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode);
+	void Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode, int instanceCount = 1);
 	void Cleanup();
 	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 
@@ -55,8 +56,11 @@ private:
 	Texture normalTexture = {};
 	GLuint vertexBuffer = 0;
 	GLuint indexBuffer = 0;
+	GLuint instanceBuffer = 0;
 	std::vector<GLfloat> vertexData;
 	std::vector<GLubyte> indexData;
+	std::vector<GLfloat> instanceData;
+	int instanceCount = 0;
 	int vertexStride = 0;
 
 	void BindAttributes();

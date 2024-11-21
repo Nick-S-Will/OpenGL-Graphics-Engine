@@ -16,6 +16,7 @@ public:
 	GLuint GetTangents() { return tangentsLocation; }
 	GLuint GetBitangents() { return bitangentsLocation; }
 	GLuint GetTextureCoords() { return textureCoordsLocation; }
+	GLuint GetInstanceMatrix() { return instanceMatrixLocation; }
 
 	void LoadShaders(const char* vertexFilePath, const char* fragmentFilePath);
 	void SetMat4(const char* name, glm::mat4 value);
@@ -40,6 +41,7 @@ private:
 	GLuint tangentsLocation = 0;
 	GLuint bitangentsLocation = 0;
 	GLuint textureCoordsLocation = 0;
+	GLuint instanceMatrixLocation = 0;
 	GLint result = GL_FALSE;
 	int infoLogLength = 0;
 };

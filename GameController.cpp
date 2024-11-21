@@ -2,9 +2,11 @@
 #include "WindowController.h"
 #include "ToolWindow.h"
 #include "Font.h"
+#include "GameTime.h"
 
 void GameController::Initialize()
 {
+	GameTime::GetInstance().Initialize();
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	M_ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW.");
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -15,9 +17,12 @@ void GameController::Initialize()
 	glEnable(GL_CULL_FACE);
 	srand((unsigned int)time(0));
 
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 2.f, 2.f, 2.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 20.f, 20.f, 20.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
@@ -45,8 +50,7 @@ void GameController::RunGame()
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
 	Mesh* mesh = new Mesh();
-	mesh->Create(&diffuseShader, modelDirectory + "Fighter.obj", true, GL_REPEAT);
-	mesh->scale = glm::vec3(2e-3f);
+	mesh->Create(&diffuseShader, modelDirectory + "Cube.obj", false, GL_REPEAT, 1000);
 	meshes.push_back(mesh);
 
 	colorShader = Shader();
@@ -57,7 +61,8 @@ void GameController::RunGame()
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj", false, GL_REPEAT);
-		lightMesh->position = glm::vec3(0.f, .8f, 1.f);
+		lightMesh->position = glm::vec3(0.f, 15.f, 0.f);
+		lightMesh->eulerAngles.x = glm::radians(90.f);
 		lightMesh->scale = glm::vec3(.1f);
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
 
@@ -73,24 +78,20 @@ void GameController::RunGame()
 	arialFont->Create(&fontShader, fontDirectory + "arial.ttf", 100);
 #pragma endregion
 
-
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
-	double lastTime = glfwGetTime();
-	int enabledLightIndex = 0;
 	do
 	{
 		glfwPollEvents();
-		float deltaTime = (float)(glfwGetTime() - lastTime);
-		lastTime += deltaTime;
+		GameTime::GetInstance().Update();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
 		//skybox->Render(vp);
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
-		for (auto mesh : meshes) mesh->Render(vp, camera.GetPosition(), lightMeshes);
-
-		arialFont->RenderText("Nicholas", 10.f, 50.f, .5f, { 0.f, 0.f, 0.f });
+		for (auto mesh : meshes)mesh->Render(vp, camera.GetPosition(), lightMeshes);
+		
+		arialFont->RenderText(std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
 
 		glfwSwapBuffers(window);
 

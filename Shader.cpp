@@ -125,6 +125,7 @@ void Shader::LoadAttributes()
 	tangentsLocation = glGetAttribLocation(programID, "tangents");
 	bitangentsLocation = glGetAttribLocation(programID, "bitangents");
 	textureCoordsLocation = glGetAttribLocation(programID, "texCoords");
+	instanceMatrixLocation = glGetAttribLocation(programID, "instanceMatrix");
 }
 
 void Shader::EvaluateShader(int infoLength, GLuint id)

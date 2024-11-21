@@ -6,24 +6,24 @@ Mesh::~Mesh()
 	Cleanup();
 }
 
-void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode)
+void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode, int instanceCount)
 {
 	this->shader = shader;
 
 	objl::Loader loader;
 	M_ASSERT(loader.LoadFile(filePath), "Failed to load mesh");
 
-	for (int i = 0; i < loader.LoadedMeshes.size(); i++)
+	for (int i = 0; i < (int)loader.LoadedMeshes.size(); i++)
 	{
 		objl::Mesh mesh = loader.LoadedMeshes[i];
 		std::vector<objl::Vector3> tangents;
 		std::vector<objl::Vector3> bitangents;
-		std::vector<objl::Vertex> triangle;
-		objl::Vector3 tangent;
-		objl::Vector3 bitangent;
 		if (normalMapEnabled)
 		{
-			for (int j = 0; j < mesh.Vertices.size(); j += 3)
+			std::vector<objl::Vertex> triangle;
+			objl::Vector3 tangent;
+			objl::Vector3 bitangent;
+			for (int j = 0; j < (int)mesh.Vertices.size(); j += 3)
 			{
 				triangle.clear();
 				triangle.push_back(mesh.Vertices[j]);
@@ -35,7 +35,7 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 			}
 		}
 
-		for (int j = 0; j < mesh.Vertices.size(); j++)
+		for (int j = 0; j < (int)mesh.Vertices.size(); j++)
 		{
 			vertexData.push_back(mesh.Vertices[j].Position.X);
 			vertexData.push_back(mesh.Vertices[j].Position.Y);
@@ -73,14 +73,43 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 	specularTexture = Texture();
 	specularTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
 
-	texturePath = loader.LoadedMaterials[0].map_bump;
-	textureFileName = texturePath != "" ? GetFileName(texturePath) : "BrickWallNormal.jpg";
-	normalTexture = Texture();
-	normalTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
+	if (normalMapEnabled)
+	{
+		texturePath = loader.LoadedMaterials[0].map_bump;
+		textureFileName = texturePath != "" ? GetFileName(texturePath) : "BrickWallNormal.jpg";
+		normalTexture = Texture();
+		normalTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
+	}
+
+	this->instanceCount = instanceCount;
 
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	if (!HasInstancingEnabled()) return;
+
+	glGenBuffers(1, &instanceBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+
+	srand((int)glfwGetTime());
+	for (int i = 0; i < instanceCount; i++)
+	{
+		glm::mat4 model = glm::mat4(1.f);
+		model = glm::translate(model, glm::vec3(-10 + rand() % 20, -10 + rand() % 20, -10 + rand() % 20));
+		for (int x = 0; x < 4; x++)
+		{
+			for (int y = 0; y < 4; y++)
+			{
+				instanceData.push_back(model[x][y]);
+			}
+		}
+	}
+
+	glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(glm::mat4), instanceData.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 }
 
 void Mesh::Cleanup()
@@ -102,10 +131,30 @@ void Mesh::Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& li
 	BindAttributes();
 	SetShaderVariables(vp, cameraPosition, lightMeshes);
 
-	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / vertexStride);
+	if (HasInstancingEnabled())
+	{
+		glDrawArraysInstanced(GL_TRIANGLES, 0, vertexData.size() / vertexStride, instanceCount);
+	}
+	else
+	{
+		glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / vertexStride);
+	}
+
 	glDisableVertexAttribArray(shader->GetVertices());
 	glDisableVertexAttribArray(shader->GetNormals());
+	if (HasNormalMapEnabled())
+	{
+		glDisableVertexAttribArray(shader->GetTangents());
+		glDisableVertexAttribArray(shader->GetBitangents());
+	}
 	glDisableVertexAttribArray(shader->GetTextureCoords());
+	if (HasInstancingEnabled())
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			glDisableVertexAttribArray(shader->GetInstanceMatrix() + i);
+		}
+	}
 }
 
 void Mesh::BindAttributes()
@@ -133,6 +182,21 @@ void Mesh::BindAttributes()
 
 	glEnableVertexAttribArray(shader->GetTextureCoords());
 	glVertexAttribPointer(shader->GetTextureCoords(), 2, GL_FLOAT, GL_FALSE, vertexStride * sizeof(float), (void*)(pointerIndex * sizeof(float)));
+
+	if (!HasInstancingEnabled()) return;
+
+	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+
+	for (int i = 0; i < 4; i++)
+	{
+		glEnableVertexAttribArray(shader->GetInstanceMatrix() + i);
+		glVertexAttribPointer(shader->GetInstanceMatrix() + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * sizeof(glm::vec4)));
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		glVertexAttribDivisor(shader->GetInstanceMatrix() + i, 1);
+	}
 }
 
 void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes)
@@ -141,6 +205,7 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 	shader->SetMat4("WVP", vp * GetTransform());
 	shader->SetVec3("CameraPosition", cameraPosition);
 	shader->SetInt("NormalMapsEnabled", HasNormalMapEnabled());
+	shader->SetInt("InstancingEnabled", HasInstancingEnabled());
 
 	shader->SetVec3("ambientColor", glm::vec3(.2f));
 	shader->SetFloat("material.specularStrength", 100);
@@ -148,7 +213,7 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 	shader->SetTextureSampler("material.specularTexture", GL_TEXTURE1, 1, specularTexture.GetTexture());
 	shader->SetTextureSampler("material.normalTexture", GL_TEXTURE2, 2, normalTexture.GetTexture());
 
-	for (int i = 0; i < lightMeshes.size(); i++)
+	for (int i = 0; i < (int)lightMeshes.size(); i++)
 	{
 		std::string arrayName = "lights";
 		shader->SetArrayVec3(arrayName, i, "position", lightMeshes[i]->position);

@@ -19,7 +19,7 @@ void WindowController::NewWindow()
 
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	
 	window = glfwCreateWindow(1024, 768, "Sample Scene", NULL, NULL);
 	M_ASSERT(window != nullptr, "Failed to open GLFW window.");
