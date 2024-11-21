@@ -42,10 +42,13 @@ public:
 		default: return "Unknown";
 		}
 	}
-	bool HasNormalMapEnabled() { return vertexStride == 14; }
-	bool HasInstancingEnabled() { return instanceCount > 1; }
+	int GetInstanceCount() const { return instanceCount; }
+	bool HasNormalMapEnabled() const { return vertexStride == 14; }
+	bool HasInstancingEnabled() const { return instanceCount > 1; }
 
 	void Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode, int instanceCount = 1);
+	void AddInstance() { AddInstance(true); }
+	void RemoveInstance();
 	void Cleanup();
 	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 
@@ -63,6 +66,8 @@ private:
 	int instanceCount = 0;
 	int vertexStride = 0;
 
+	void AddInstance(bool updateBuffer);
+	void UpdateInstanceBuffer();
 	void BindAttributes();
 	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
 	

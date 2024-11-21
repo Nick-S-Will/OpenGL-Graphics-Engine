@@ -60,6 +60,11 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 		}
 	}
 
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	vertexStride = normalMapEnabled ? 14 : 8;
 
 	std::string textureDirectory = "./Assets/Textures/";
@@ -81,45 +86,65 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 		normalTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
 	}
 
-	this->instanceCount = instanceCount;
-
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	if (!HasInstancingEnabled()) return;
+	if (instanceCount <= 1)
+	{
+		this->instanceCount = 1;
+		return;
+	}
 
 	glGenBuffers(1, &instanceBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
 
 	srand((int)glfwGetTime());
-	for (int i = 0; i < instanceCount; i++)
+	for (int i = 0; i < instanceCount; i++) AddInstance(false);
+	
+	UpdateInstanceBuffer();
+}
+
+void Mesh::AddInstance(bool updateBuffer)
+{
+	glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(-5 + rand() % 10, -5 + rand() % 10, -5 + rand() % 10));
+	for (int x = 0; x < 4; x++)
 	{
-		glm::mat4 model = glm::mat4(1.f);
-		model = glm::translate(model, glm::vec3(-10 + rand() % 20, -10 + rand() % 20, -10 + rand() % 20));
-		for (int x = 0; x < 4; x++)
+		for (int y = 0; y < 4; y++)
 		{
-			for (int y = 0; y < 4; y++)
-			{
-				instanceData.push_back(model[x][y]);
-			}
+			instanceData.push_back(model[x][y]);
 		}
 	}
 
+	instanceCount++;
+
+	if (updateBuffer) UpdateInstanceBuffer();
+}
+
+void Mesh::RemoveInstance()
+{
+	if (instanceCount == 1) return;
+
+	for (int x = 0; x < 16; x++) instanceData.pop_back();
+		
+	instanceCount--;
+
+	UpdateInstanceBuffer();
+}
+
+void Mesh::UpdateInstanceBuffer()
+{
 	glBufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(glm::mat4), instanceData.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 }
 
 void Mesh::Cleanup()
 {
 	texture.CleanUp();
 	specularTexture.CleanUp();
+	normalTexture.CleanUp();
 	if (vertexBuffer != 0) glDeleteBuffers(1, &vertexBuffer);
 	if (indexBuffer != 0) glDeleteBuffers(1, &indexBuffer);
+	if (instanceBuffer != 0) glDeleteBuffers(1, &instanceBuffer);
 	vertexBuffer = 0;
 	indexBuffer = 0;
+	instanceBuffer = 0;
 }
 
 void Mesh::Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes)

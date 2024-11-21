@@ -22,7 +22,7 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 20.f, 20.f, 20.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 5.f, 5.f, 5.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
@@ -50,19 +50,19 @@ void GameController::RunGame()
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
 	Mesh* mesh = new Mesh();
-	mesh->Create(&diffuseShader, modelDirectory + "Cube.obj", false, GL_REPEAT, 1000);
+	mesh->Create(&diffuseShader, modelDirectory + "Monkey.obj", true, GL_REPEAT, 100);
 	meshes.push_back(mesh);
 
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
 
-	std::vector<LightType> lightTypes{ LightType::Point };
+	std::vector<LightType> lightTypes{ LightType::Spot };
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj", false, GL_REPEAT);
-		lightMesh->position = glm::vec3(0.f, 15.f, 0.f);
-		lightMesh->eulerAngles.x = glm::radians(90.f);
+		lightMesh->position = glm::vec3(3.f, 0.f, 0.f);
+		lightMesh->eulerAngles.y = glm::radians(90.f);
 		lightMesh->scale = glm::vec3(.1f);
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
 
@@ -79,6 +79,7 @@ void GameController::RunGame()
 #pragma endregion
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
+	bool keyWasPressed = false;
 	do
 	{
 		glfwPollEvents();
@@ -86,12 +87,22 @@ void GameController::RunGame()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		bool upPressed = glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
+		bool downPressed = glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
+		if (upPressed && !keyWasPressed) mesh->AddInstance();
+		else if (downPressed && !keyWasPressed) mesh->RemoveInstance();
+		keyWasPressed = upPressed || downPressed;
+
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
-		//skybox->Render(vp);
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
-		for (auto mesh : meshes)mesh->Render(vp, camera.GetPosition(), lightMeshes);
+		for (auto mesh : meshes)
+		{
+			mesh->eulerAngles.y += GameTime::GetInstance().GetDeltaTime();
+			mesh->Render(vp, camera.GetPosition(), lightMeshes);
+		}
 		
-		arialFont->RenderText(std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
+		arialFont->RenderText("FPS = " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, {1.f, 1.f, 0.f});
+		arialFont->RenderText("Instance Count = " + std::to_string(mesh->GetInstanceCount()), 10.f, 100.f, .5f, {1.f, 1.f, 0.f});
 
 		glfwSwapBuffers(window);
 
