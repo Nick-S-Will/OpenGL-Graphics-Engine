@@ -15,12 +15,14 @@ public:
 		if (window == nullptr) NewWindow();
 		return window;
 	}
+	glm::ivec2 GetScreenSize() { return screenSize; }
 
+	void Create(int width = -1, int height = -1);
 	void NewWindow();
-	glm::ivec2 GetScreenSize();
 
 private:
 	GLFWwindow* window;
+	glm::ivec2 screenSize = glm::ivec2(1280, 720);
 };
 
 #endif // !WINDOW_CONTROLLER_H

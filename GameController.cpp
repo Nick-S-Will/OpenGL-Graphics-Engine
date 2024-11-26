@@ -10,7 +10,7 @@ void GameController::Initialize()
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	M_ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW.");
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-	glClearColor(.2f, .2f, .2f, 0.f);
+	glClearColor(.0f, .0f, .0f, 1.f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -22,7 +22,7 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 5.f, 5.f, 5.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 15.f, 15.f, 15.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
@@ -78,8 +78,16 @@ void GameController::RunGame()
 	arialFont->Create(&fontShader, fontDirectory + "arial.ttf", 100);
 #pragma endregion
 
+#pragma region Post Processor
+	postProcessorShader = Shader();
+	postProcessorShader.LoadShaders("PostProcessor.vertexshader", "PostProcessor.fragmentshader");
+
+	postProcessor = PostProcessor();
+	postProcessor.Create(&postProcessorShader);
+#pragma endregion
+
+
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
-	bool keyWasPressed = false;
 	do
 	{
 		glfwPollEvents();
@@ -87,11 +95,7 @@ void GameController::RunGame()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		bool upPressed = glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
-		bool downPressed = glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
-		if (upPressed && !keyWasPressed) mesh->AddInstance();
-		else if (downPressed && !keyWasPressed) mesh->RemoveInstance();
-		keyWasPressed = upPressed || downPressed;
+		postProcessor.Start();
 
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
@@ -102,7 +106,8 @@ void GameController::RunGame()
 		}
 		
 		arialFont->RenderText("FPS = " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, {1.f, 1.f, 0.f});
-		arialFont->RenderText("Instance Count = " + std::to_string(mesh->GetInstanceCount()), 10.f, 100.f, .5f, {1.f, 1.f, 0.f});
+		
+		postProcessor.End();
 
 		glfwSwapBuffers(window);
 
@@ -122,5 +127,8 @@ void GameController::RunGame()
 
 	fontShader.Cleanup();
 	delete arialFont;
+
+	postProcessorShader.Cleanup();
+	postProcessor.Cleanup();
 #pragma endregion
 }
