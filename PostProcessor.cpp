@@ -31,6 +31,8 @@ void PostProcessor::End()
 
 	glUseProgram(shader->GetProgramID());
 	shader->SetTextureSampler("screenTexture", GL_TEXTURE0, 0, textureColorBufferLocation);
+	shader->SetFloat("time", 2.f * glfwGetTime());
+	shader->SetInt("effectType", static_cast<int>(effectType));
 	BindVertices();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glDisableVertexAttribArray(shader->GetVertices());

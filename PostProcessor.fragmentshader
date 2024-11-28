@@ -21,10 +21,21 @@ const float edgeDetectionKernel[9] = float[] (
 	1.f, -8.f, 1.f,
 	1.f,  1.f, 1.f
 );
+const float pi = 3.14159f;
+
+const int NO_EFFECT = 0;
+const int INVERTED_EFFECT = 1;
+const int GRAYSCALE_EFFECT = 2;
+const int BLUR_EFFECT = 3;
+const int SHARP_EFFECT = 4;
+const int EDGE_EFFECT = 5;
+const int RAINBOW_EFFECT = 6;
 
 in vec2 retTexCoords;
 
 uniform sampler2D screenTexture;
+uniform float time;
+uniform int effectType;
 
 out vec4 FragColor;
 
@@ -38,6 +49,14 @@ vec3 getInvertedColor()
 	return vec3(1.f) - getBaseColor();
 }
 
+vec3 getGrayscaleColor()
+{
+	vec3 color = getBaseColor();
+	float weightedAverage = (0.2126f * color.r) + (0.7152f * color.g) + (0.0722f * color.b);
+
+	return vec3(weightedAverage);
+}
+
 vec3 getKernelSampledColor(float kernel[9])
 {
 	vec3 color = vec3(0.f);
@@ -49,7 +68,31 @@ vec3 getKernelSampledColor(float kernel[9])
 	return color;
 }
 
+vec3 getRainbowColor()
+{
+	vec3 color = getBaseColor();
+	if (color.r + color.g + color.b < .1) return color;
+
+	float r = cos(time) / 2.f + .5f;
+	float g = cos(time + 4.f / 3.f * pi) / 2.f + .5f;
+	float b = cos(time + 2.f / 3.f * pi) / 2.f + .5f;
+
+	return mix(vec3(r, g, b), color, .75f);
+}
+
 void main()
 {
-	FragColor = vec4(getKernelSampledColor(edgeDetectionKernel), 1.f);
+	vec3 color;
+	switch (effectType)
+	{
+	case INVERTED_EFFECT: color = getInvertedColor(); break;
+	case GRAYSCALE_EFFECT: color = getGrayscaleColor(); break;
+	case BLUR_EFFECT: color = getKernelSampledColor(blurKernel); break;
+	case SHARP_EFFECT: color = getKernelSampledColor(sharpKernel); break;
+	case EDGE_EFFECT: color = getKernelSampledColor(edgeDetectionKernel); break;
+	case RAINBOW_EFFECT: color = getRainbowColor(); break;
+	default: color = getBaseColor(); break;
+	}
+
+	FragColor = vec4(color, 1.f);
 }

@@ -61,7 +61,7 @@ void GameController::RunGame()
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj", false, GL_REPEAT);
-		lightMesh->position = glm::vec3(3.f, 0.f, 0.f);
+		lightMesh->position = glm::vec3(10.f, 0.f, 0.f);
 		lightMesh->eulerAngles.y = glm::radians(90.f);
 		lightMesh->scale = glm::vec3(.1f);
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
@@ -86,13 +86,22 @@ void GameController::RunGame()
 	postProcessor.Create(&postProcessorShader);
 #pragma endregion
 
-
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
+	bool leftWasDown = false, rightWasDown = false;
 	do
 	{
 		glfwPollEvents();
 		GameTime::GetInstance().Update();
 
+#pragma region Input
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && !leftWasDown) postProcessor.effectType = (EffectType)(((int)postProcessor.effectType - 1 + EffectTypeCount) % EffectTypeCount);
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && !rightWasDown) postProcessor.effectType = (EffectType)(((int)postProcessor.effectType + 1) % EffectTypeCount);
+		
+		leftWasDown = glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS;
+		rightWasDown = glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS;
+#pragma endregion
+
+#pragma region Rendering
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		postProcessor.Start();
@@ -104,13 +113,13 @@ void GameController::RunGame()
 			mesh->eulerAngles.y += GameTime::GetInstance().GetDeltaTime();
 			mesh->Render(vp, camera.GetPosition(), lightMeshes);
 		}
-		
-		arialFont->RenderText("FPS = " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, {1.f, 1.f, 0.f});
-		
+
+		arialFont->RenderText("Effect Type = " + postProcessor.GetEffectName(), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
+
 		postProcessor.End();
 
 		glfwSwapBuffers(window);
-
+#pragma endregion
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
 #pragma region Cleanup
