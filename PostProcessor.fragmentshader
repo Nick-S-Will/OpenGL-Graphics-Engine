@@ -1,13 +1,55 @@
 #version 330
 
+const float offset = 1.f / 300.f;
+const vec2 offsets[9] = vec2[] (
+	vec2(-offset, offset),	vec2(0.f, offset),	vec2(offset, offset),
+	vec2(-offset, 0.f),		vec2(0.f, 0.f),		vec2(offset, 0.f),
+	vec2(-offset, -offset), vec2(0.f, -offset), vec2(offset, -offset)
+);
+const float blurKernel[9] = float[] (
+	1.f / 16.f, 2.f / 16.f, 1.f / 16.f,
+	2.f / 16.f, 4.f / 16.f, 2.f / 16.f,
+	1.f / 16.f, 2.f / 16.f, 1.f / 16.f
+);
+const float sharpKernel[9] = float[] (
+	-1.f, -1.f, -1.f,
+	-1.f,  9.f, -1.f,
+	-1.f, -1.f, -1.f
+);
+const float edgeDetectionKernel[9] = float[] (
+	1.f,  1.f, 1.f,
+	1.f, -8.f, 1.f,
+	1.f,  1.f, 1.f
+);
+
 in vec2 retTexCoords;
 
 uniform sampler2D screenTexture;
 
 out vec4 FragColor;
 
+vec3 getBaseColor()
+{
+	return texture(screenTexture, retTexCoords).rgb;
+}
+
+vec3 getInvertedColor()
+{
+	return vec3(1.f) - getBaseColor();
+}
+
+vec3 getKernelSampledColor(float kernel[9])
+{
+	vec3 color = vec3(0.f);
+	for (int i = 0; i < 9; i++)
+	{
+		color += vec3(texture(screenTexture, retTexCoords + offsets[i])) * kernel[i];
+	}
+
+	return color;
+}
+
 void main()
 {
-	vec3 color = vec3(1.f) - texture(screenTexture, retTexCoords).rgb;
-	FragColor = vec4(color, 1.f);
+	FragColor = vec4(getKernelSampledColor(edgeDetectionKernel), 1.f);
 }
