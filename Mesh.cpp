@@ -1,38 +1,63 @@
 #include "Mesh.h"
 #include "Shader.h"
+#include "ASEReader.h"
 
 Mesh::~Mesh()
 {
 	Cleanup();
 }
 
-void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode, int instanceCount)
+void Mesh::Create(Shader* shader, std::string filePath, int instanceCount)
 {
 	this->shader = shader;
 
+	if (Texture::EndsWith(filePath, "ase")) LoadASE(filePath);
+	else LoadOBJ(filePath);
+
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	vertexStride = 14;
+
+	if (instanceCount <= 1)
+	{
+		this->instanceCount = 1;
+		return;
+	}
+
+	glGenBuffers(1, &instanceBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+
+	srand((int)glfwGetTime());
+	for (int i = 0; i < instanceCount; i++) AddInstance(false);
+
+	UpdateInstanceBuffer();
+}
+
+void Mesh::LoadOBJ(std::string& file)
+{
 	objl::Loader loader;
-	M_ASSERT(loader.LoadFile(filePath), "Failed to load mesh");
+	M_ASSERT(loader.LoadFile(file), "Failed to load mesh");
 
 	for (int i = 0; i < (int)loader.LoadedMeshes.size(); i++)
 	{
 		objl::Mesh mesh = loader.LoadedMeshes[i];
 		std::vector<objl::Vector3> tangents;
 		std::vector<objl::Vector3> bitangents;
-		if (normalMapEnabled)
+		std::vector<objl::Vertex> triangle;
+		objl::Vector3 tangent;
+		objl::Vector3 bitangent;
+		for (int j = 0; j < (int)mesh.Vertices.size(); j += 3)
 		{
-			std::vector<objl::Vertex> triangle;
-			objl::Vector3 tangent;
-			objl::Vector3 bitangent;
-			for (int j = 0; j < (int)mesh.Vertices.size(); j += 3)
-			{
-				triangle.clear();
-				triangle.push_back(mesh.Vertices[j]);
-				triangle.push_back(mesh.Vertices[j + 1]);
-				triangle.push_back(mesh.Vertices[j + 2]);
-				CalculateTangents(triangle, tangent, bitangent);
-				tangents.push_back(tangent);
-				bitangents.push_back(bitangent);
-			}
+			triangle.clear();
+			triangle.push_back(mesh.Vertices[j]);
+			triangle.push_back(mesh.Vertices[j + 1]);
+			triangle.push_back(mesh.Vertices[j + 2]);
+			CalculateTangents(triangle, tangent, bitangent);
+			tangents.push_back(tangent);
+			bitangents.push_back(bitangent);
 		}
 
 		for (int j = 0; j < (int)mesh.Vertices.size(); j++)
@@ -44,7 +69,7 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 			vertexData.push_back(mesh.Vertices[j].Normal.Y);
 			vertexData.push_back(mesh.Vertices[j].Normal.Z);
 
-			if (normalMapEnabled && loader.LoadedMaterials[0].map_bump != "")
+			if (loader.LoadedMaterials[0].map_bump != "")
 			{
 				int index = j / 3;
 				vertexData.push_back(tangents[index].X);
@@ -60,45 +85,121 @@ void Mesh::Create(Shader* shader, std::string filePath, bool normalMapEnabled, G
 		}
 	}
 
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	vertexStride = normalMapEnabled ? 14 : 8;
-
 	std::string textureDirectory = "./Assets/Textures/";
 	std::string texturePath = loader.LoadedMaterials[0].map_Kd;
 	std::string textureFileName = texturePath != "" ? GetFileName(texturePath) : "Tacos.jpg";
 	texture = Texture();
-	texture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
+	texture.LoadTexture(textureDirectory + textureFileName, GL_REPEAT);
 
 	texturePath = loader.LoadedMaterials[0].map_Ks;
 	textureFileName = texturePath != "" ? GetFileName(texturePath) : "Pattern.png";
 	specularTexture = Texture();
-	specularTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
+	specularTexture.LoadTexture(textureDirectory + textureFileName, GL_REPEAT);
 
-	if (normalMapEnabled)
+	texturePath = loader.LoadedMaterials[0].map_bump;
+	textureFileName = texturePath != "" ? GetFileName(texturePath) : "BrickWallNormal.jpg";
+	normalTexture = Texture();
+	normalTexture.LoadTexture(textureDirectory + textureFileName, GL_REPEAT);
+}
+
+void Mesh::LoadASE(std::string& file)
+{
+	ASEReader reader;
+	reader.ParseASEFile(file.c_str());
+	ASEReader::MeshInfo& meshInfo = reader.GeoObjects[0]->MeshInfo;
+	ASEReader::Material* material = reader.Materials[reader.GeoObjects[0]->MaterialID];
+
+	std::vector<objl::Vector3> tangents;
+	std::vector<objl::Vector3> bitangents;
+	std::vector<objl::Vertex> triangle;
+	objl::Vector3 tangent;
+	objl::Vector3 bitangent;
+	int vertexCount = 0;
+	for (int i = 0; i < meshInfo.FaceCount; i++)
 	{
-		texturePath = loader.LoadedMaterials[0].map_bump;
-		textureFileName = texturePath != "" ? GetFileName(texturePath) : "BrickWallNormal.jpg";
-		normalTexture = Texture();
-		normalTexture.LoadTexture(textureDirectory + textureFileName, textureWrapMode);
+		glm::vec3 face = meshInfo.Faces[i];
+		glm::vec3 textureFace = meshInfo.TextureFaces[i];
+		triangle.clear();
+
+		objl::Vertex vertex = objl::Vertex();
+		glm::vec3 vector = meshInfo.Vertices[(int)face.x];
+		vertex.Position = objl::Vector3(vector.x, vector.y, vector.z);
+		glm::vec3 normal = meshInfo.Normals[vertexCount];
+		vertex.Normal = objl::Vector3(normal.x, normal.y, normal.z);
+		glm::vec2 textureCoordinate = meshInfo.TextureVertices[(int)textureFace.x];
+		vertex.TextureCoordinate = objl::Vector2(textureCoordinate.x, textureCoordinate.y);
+		triangle.push_back(vertex);
+		vertexCount++;
+
+		vertex = objl::Vertex();
+		vector = meshInfo.Vertices[(int)face.y];
+		vertex.Position = objl::Vector3(vector.x, vector.y, vector.z);
+		normal = meshInfo.Normals[vertexCount];
+		vertex.Normal = objl::Vector3(normal.x, normal.y, normal.z);
+		textureCoordinate = meshInfo.TextureVertices[(int)textureFace.y];
+		vertex.TextureCoordinate = objl::Vector2(textureCoordinate.x, textureCoordinate.y);
+		triangle.push_back(vertex);
+		vertexCount++;
+
+		vertex = objl::Vertex();
+		vector = meshInfo.Vertices[(int)face.z];
+		vertex.Position = objl::Vector3(vector.x, vector.y, vector.z);
+		normal = meshInfo.Normals[vertexCount];
+		vertex.Normal = objl::Vector3(normal.x, normal.y, normal.z);
+		textureCoordinate = meshInfo.TextureVertices[(int)textureFace.z];
+		vertex.TextureCoordinate = objl::Vector2(textureCoordinate.x, textureCoordinate.y);
+		triangle.push_back(vertex);
+		vertexCount++;
+
+		CalculateTangents(triangle, tangent, bitangent);
+		tangents.push_back(tangent);
+		bitangents.push_back(bitangent);
+
+		for (int j = 0; j < 3; j++)
+		{
+			vertexData.push_back(triangle[j].Position.X);
+			vertexData.push_back(triangle[j].Position.Y);
+			vertexData.push_back(triangle[j].Position.Z);
+			vertexData.push_back(triangle[j].Normal.X);
+			vertexData.push_back(triangle[j].Normal.Y);
+			vertexData.push_back(triangle[j].Normal.Z);
+
+			int index = vertexCount / 3 - 1;
+			vertexData.push_back(tangents[index].X);
+			vertexData.push_back(tangents[index].Y);
+			vertexData.push_back(tangents[index].Z);
+			vertexData.push_back(bitangents[index].X);
+			vertexData.push_back(bitangents[index].Y);
+			vertexData.push_back(bitangents[index].Z);
+
+			vertexData.push_back(triangle[j].TextureCoordinate.X);
+			vertexData.push_back(triangle[j].TextureCoordinate.Y);
+		}
 	}
 
-	if (instanceCount <= 1)
+	std::string textureDirectory = "./Assets/Textures/";
+	texture = Texture();
+	if (material->Maps[0].Name == "DIFFUSE")
 	{
-		this->instanceCount = 1;
-		return;
+		texture.LoadTexture(textureDirectory + GetFileName(material->Maps[0].TextureFileName), GL_REPEAT);
 	}
-
-	glGenBuffers(1, &instanceBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
-
-	srand((int)glfwGetTime());
-	for (int i = 0; i < instanceCount; i++) AddInstance(false);
-	
-	UpdateInstanceBuffer();
+	specularTexture = Texture();
+	if (material->Maps[1].Name == "SPECULAR")
+	{
+		specularTexture.LoadTexture(textureDirectory + GetFileName(material->Maps[1].TextureFileName), GL_REPEAT);
+	}
+	normalTexture = Texture();
+	if (material->Maps[1].Name == "BUMP")
+	{
+		normalTexture.LoadTexture(textureDirectory + GetFileName(material->Maps[1].TextureFileName), GL_REPEAT);
+		vertexStride = 14;
+	}
+	else if (material->Maps[2].Name == "BUMP")
+	{
+		normalTexture.LoadTexture(textureDirectory + GetFileName(material->Maps[2].TextureFileName), GL_REPEAT);
+		vertexStride = 14;
+	}
+	else vertexStride = 8;
 }
 
 void Mesh::AddInstance(bool updateBuffer)
@@ -122,7 +223,7 @@ void Mesh::RemoveInstance()
 	if (instanceCount == 1) return;
 
 	for (int x = 0; x < 16; x++) instanceData.pop_back();
-		
+
 	instanceCount--;
 
 	UpdateInstanceBuffer();
@@ -238,9 +339,9 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 	shader->SetTextureSampler("material.specularTexture", GL_TEXTURE1, 1, specularTexture.GetTexture());
 	shader->SetTextureSampler("material.normalTexture", GL_TEXTURE2, 2, normalTexture.GetTexture());
 
+	std::string arrayName = "lights";
 	for (int i = 0; i < (int)lightMeshes.size(); i++)
 	{
-		std::string arrayName = "lights";
 		shader->SetArrayVec3(arrayName, i, "position", lightMeshes[i]->position);
 		shader->SetArrayVec3(arrayName, i, "direction", lightMeshes[i]->GetForward());
 		shader->SetArrayVec3(arrayName, i, "color", lightMeshes[i]->color);

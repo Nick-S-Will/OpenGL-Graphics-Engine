@@ -22,13 +22,14 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 15.f, 15.f, 15.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 1.5f, 1.5f, 1.5f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
 void GameController::RunGame()
 {
 	std::string modelDirectory = "./Assets/Models/";
 	std::string textureDirectory = "./Assets/Textures/";
+	std::string skyboxDirectory = textureDirectory + "Ocean Skybox/";
 	std::string fontDirectory = "./Assets/Fonts/";
 
 #pragma region Skybox
@@ -37,12 +38,12 @@ void GameController::RunGame()
 
 	skybox = new Skybox();
 	skybox->Create(&skyboxShader, modelDirectory + "Skybox.obj",
-		{ textureDirectory + "Skybox/right.jpg",
-		  textureDirectory + "Skybox/left.jpg",
-		  textureDirectory + "Skybox/top.jpg",
-		  textureDirectory + "Skybox/bottom.jpg",
-		  textureDirectory + "Skybox/front.jpg",
-		  textureDirectory + "Skybox/back.jpg" });
+		{ skyboxDirectory + "right.jpg",
+		  skyboxDirectory + "left.jpg",
+		  skyboxDirectory + "top.jpg",
+		  skyboxDirectory + "bottom.jpg",
+		  skyboxDirectory + "front.jpg",
+		  skyboxDirectory + "back.jpg" });
 #pragma endregion
 
 #pragma region Meshes
@@ -50,7 +51,9 @@ void GameController::RunGame()
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
 	Mesh* mesh = new Mesh();
-	mesh->Create(&diffuseShader, modelDirectory + "Monkey.obj", true, GL_REPEAT, 100);
+	mesh->Create(&diffuseShader, modelDirectory + "Fighter.ase");
+	mesh->eulerAngles.x = glm::radians(-90.f);
+	mesh->scale = glm::vec3(1e-3f);
 	meshes.push_back(mesh);
 
 	colorShader = Shader();
@@ -60,10 +63,11 @@ void GameController::RunGame()
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
-		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj", false, GL_REPEAT);
-		lightMesh->position = glm::vec3(10.f, 0.f, 0.f);
+		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj");
+		lightMesh->position = glm::vec3(1.f, 1.f, 0.f);
+		lightMesh->eulerAngles.x = glm::radians(-45.f);
 		lightMesh->eulerAngles.y = glm::radians(90.f);
-		lightMesh->scale = glm::vec3(.1f);
+		lightMesh->scale = glm::vec3(1e-2f);
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
 
 		lightMeshes.push_back(lightMesh);
@@ -87,36 +91,19 @@ void GameController::RunGame()
 #pragma endregion
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
-	bool leftWasDown = false, rightWasDown = false;
 	do
 	{
 		glfwPollEvents();
 		GameTime::GetInstance().Update();
 
-#pragma region Input
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && !leftWasDown) postProcessor.effectType = (EffectType)(((int)postProcessor.effectType - 1 + EffectTypeCount) % EffectTypeCount);
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && !rightWasDown) postProcessor.effectType = (EffectType)(((int)postProcessor.effectType + 1) % EffectTypeCount);
-		
-		leftWasDown = glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS;
-		rightWasDown = glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS;
-#pragma endregion
-
 #pragma region Rendering
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		postProcessor.Start();
-
 		glm::mat4 vp = camera.GetProjection() * camera.GetView();
 		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
-		for (auto mesh : meshes)
-		{
-			mesh->eulerAngles.y += GameTime::GetInstance().GetDeltaTime();
-			mesh->Render(vp, camera.GetPosition(), lightMeshes);
-		}
+		for (auto mesh : meshes) mesh->Render(vp, camera.GetPosition(), lightMeshes);
 
-		arialFont->RenderText("Effect Type = " + postProcessor.GetEffectName(), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
-
-		postProcessor.End();
+		arialFont->RenderText("FPS: " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
 
 		glfwSwapBuffers(window);
 #pragma endregion

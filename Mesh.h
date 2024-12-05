@@ -46,7 +46,7 @@ public:
 	bool HasNormalMapEnabled() const { return vertexStride == 14; }
 	bool HasInstancingEnabled() const { return instanceCount > 1; }
 
-	void Create(Shader* shader, std::string filePath, bool normalMapEnabled, GLenum textureWrapMode, int instanceCount = 1);
+	void Create(Shader* shader, std::string filePath, int instanceCount = 1);
 	void AddInstance() { AddInstance(true); }
 	void RemoveInstance();
 	void Cleanup();
@@ -65,6 +65,9 @@ private:
 	std::vector<GLfloat> instanceData;
 	int instanceCount = 0;
 	int vertexStride = 0;
+
+	void LoadOBJ(std::string& file);
+	void LoadASE(std::string& file);
 
 	void AddInstance(bool updateBuffer);
 	void UpdateInstanceBuffer();

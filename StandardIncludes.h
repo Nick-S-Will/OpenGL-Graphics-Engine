@@ -5,7 +5,9 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <sstream>
 #include <vector>
+#include <algorithm>
 
 #ifdef _WIN32
 #include <Windows.h>
