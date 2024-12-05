@@ -10,7 +10,7 @@ void Font::Create(Shader* shader, std::string name, FT_UInt size)
 	Initialize(name, size);
 }
 
-void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3 color)
+void Font::RenderText(std::string text, float x, float y, glm::vec3 color, float scale)
 {
 	y = WindowController::GetInstance().GetScreenSize().y - y;
 	glUseProgram(shader->GetProgramID());

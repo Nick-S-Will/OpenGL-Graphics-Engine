@@ -18,7 +18,7 @@ class Font
 {
 public:
 	void Create(Shader* shader, std::string name, FT_UInt size);
-	void RenderText(std::string text, float x, float y, float scale, glm::vec3 color);
+	void RenderText(std::string text, float x, float y, glm::vec3 color, float scale = 1.f);
 
 private:
 	Shader* shader = nullptr;

@@ -111,13 +111,13 @@ void ASEReader::ReadFile(const char* fileName, std::vector<std::string>& file)
 int ASEReader::GetBlock(const char* tag, std::vector<std::string>& lines, std::vector<std::string>& block, int start)
 {
 	block.clear();
-	for (int i = start; i < lines.size(); i++)
+	for (int i = start; i < (int)lines.size(); i++)
 	{
 		if (lines[i].find(tag) != std::string::npos)
 		{
 			int indent = 0;
 			i++;
-			for (int j = i; j < lines.size(); j++)
+			for (int j = i; j < (int)lines.size(); j++)
 			{
 				if (lines[j].find('{') != std::string::npos) indent++;
 				if (lines[j].find('}') != std::string::npos)
@@ -136,7 +136,7 @@ int ASEReader::GetBlock(const char* tag, std::vector<std::string>& lines, std::v
 void ASEReader::FindAllTags(const char* tag, std::vector<std::string>& lines, std::vector<std::string>& block)
 {
 	block.clear();
-	for (int i = 0; i < lines.size(); i++)
+	for (int i = 0; i < (int)lines.size(); i++)
 	{
 		if (lines[i].find(tag) != std::string::npos)
 		{
@@ -147,7 +147,7 @@ void ASEReader::FindAllTags(const char* tag, std::vector<std::string>& lines, st
 
 std::string ASEReader::ExtractValue(const char* tag, std::vector<std::string>& lines)
 {
-	for (int i = 0; i < lines.size(); i++)
+	for (int i = 0; i < (int)lines.size(); i++)
 	{
 		if (lines[i].find(tag) != std::string::npos)
 		{

@@ -1,13 +1,10 @@
 #include "GameController.h"
-#include "WindowController.h"
-#include "ToolWindow.h"
-#include "Font.h"
 #include "GameTime.h"
 
 void GameController::Initialize()
 {
 	GameTime::GetInstance().Initialize();
-	GLFWwindow* window = WindowController::GetInstance().GetWindow();
+	GLFWwindow* window = WindowController::GetInstance().NewWindow("Final Project");
 	M_ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW.");
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(.0f, .0f, .0f, 1.f);
@@ -22,17 +19,16 @@ void GameController::Initialize()
 
 	glm::ivec2 screenSize = WindowController::GetInstance().GetScreenSize();
 	camera = Camera(Resolution(screenSize.x, screenSize.y, 45.f));
-	camera.LookAt({ 1.5f, 1.5f, 1.5f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	camera.LookAt({ 0.f, 0.f, 20.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 }
 
-void GameController::RunGame()
+void GameController::LoadAssets()
 {
 	std::string modelDirectory = "./Assets/Models/";
 	std::string textureDirectory = "./Assets/Textures/";
 	std::string skyboxDirectory = textureDirectory + "Ocean Skybox/";
 	std::string fontDirectory = "./Assets/Fonts/";
 
-#pragma region Skybox
 	skyboxShader = Shader();
 	skyboxShader.LoadShaders("Skybox.vertexshader", "Skybox.fragmentshader");
 
@@ -44,51 +40,46 @@ void GameController::RunGame()
 		  skyboxDirectory + "bottom.jpg",
 		  skyboxDirectory + "front.jpg",
 		  skyboxDirectory + "back.jpg" });
-#pragma endregion
 
-#pragma region Meshes
 	diffuseShader = Shader();
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
 
 	Mesh* mesh = new Mesh();
 	mesh->Create(&diffuseShader, modelDirectory + "Fighter.ase");
-	mesh->eulerAngles.x = glm::radians(-90.f);
-	mesh->scale = glm::vec3(1e-3f);
+	mesh->scale = glm::vec3(1e-2f);
 	meshes.push_back(mesh);
 
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
 
-	std::vector<LightType> lightTypes{ LightType::Spot };
+	std::vector<LightType> lightTypes{ LightType::Point };
 	for (int i = 0; i < LIGHT_COUNT; i++)
 	{
 		Mesh* lightMesh = new Mesh();
 		lightMesh->Create(&colorShader, modelDirectory + "Sphere.obj");
-		lightMesh->position = glm::vec3(1.f, 1.f, 0.f);
-		lightMesh->eulerAngles.x = glm::radians(-45.f);
-		lightMesh->eulerAngles.y = glm::radians(90.f);
-		lightMesh->scale = glm::vec3(1e-2f);
+		lightMesh->position = lightPosition;
+		lightMesh->scale = glm::vec3(3e-1f);
 		lightMesh->lightType = lightTypes[i % lightTypes.size()];
 
 		lightMeshes.push_back(lightMesh);
 	}
-#pragma endregion
 
-#pragma region Font
 	fontShader = Shader();
 	fontShader.LoadShaders("Font.vertexshader", "Font.fragmentshader");
 
-	Font* arialFont = new Font();
-	arialFont->Create(&fontShader, fontDirectory + "arial.ttf", 100);
-#pragma endregion
+	arialFont = new Font();
+	arialFont->Create(&fontShader, fontDirectory + "arial.ttf", fontSize);
 
-#pragma region Post Processor
 	postProcessorShader = Shader();
 	postProcessorShader.LoadShaders("PostProcessor.vertexshader", "PostProcessor.fragmentshader");
 
 	postProcessor = PostProcessor();
 	postProcessor.Create(&postProcessorShader);
-#pragma endregion
+}
+
+void GameController::RunGame()
+{
+	LoadAssets();
 
 	GLFWwindow* window = WindowController::GetInstance().GetWindow();
 	do
@@ -96,20 +87,40 @@ void GameController::RunGame()
 		glfwPollEvents();
 		GameTime::GetInstance().Update();
 
-#pragma region Rendering
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		postProcessor.Start();
 
-		glm::mat4 vp = camera.GetProjection() * camera.GetView();
-		for (auto lightMesh : lightMeshes) lightMesh->Render(vp, camera.GetPosition(), lightMeshes);
-		for (auto mesh : meshes) mesh->Render(vp, camera.GetPosition(), lightMeshes);
+		switch (gameMode)
+		{
+		case GameMode::MoveLight: UpdateMoveLightScene(); break;
+		case GameMode::Transform: UpdateTransformScene(); break;
+		case GameMode::WaterScene:  break;
+		case GameMode::SpaceScene:  break;
+		}
 
-		arialFont->RenderText("FPS: " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()), 10.f, 50.f, .5f, { 1.f, 1.f, 0.f });
+		double mouseX, mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		std::vector<std::string> debugLines = {
+			"Final Project",
+			"FPS: " + std::to_string(GameTime::GetInstance().GetFramesPerSecond()),
+			"Mouse Pos: " + std::to_string(mouseX) + " " + std::to_string(mouseY),
+			"Left Button: " + (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) ? "Down" : "Up",
+			"Right Button: " + (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) ? "Down" : "Up",
+			"Fighter Position: " + Vec3ToString(meshes[0]->position),
+			"Fighter Rotation: " + Vec3ToString(glm::degrees(meshes[0]->eulerAngles)),
+			"Fighter Scale: " + Vec3ToString(meshes[0]->scale)
+		};
+		RenderLines(debugLines, glm::vec3(1.f, 1.f, 0.f));
 
+		postProcessor.End();
 		glfwSwapBuffers(window);
-#pragma endregion
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
-#pragma region Cleanup
+	CleanupAssets();
+}
+
+void GameController::CleanupAssets()
+{
 	skyboxShader.Cleanup();
 	delete skybox;
 
@@ -126,5 +137,25 @@ void GameController::RunGame()
 
 	postProcessorShader.Cleanup();
 	postProcessor.Cleanup();
-#pragma endregion
+}
+
+void GameController::UpdateMoveLightScene()
+{
+	meshes[0]->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
+
+	lightMeshes[0]->position += 2.f * (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
+
+	glm::mat4 vp = camera.GetProjection() * camera.GetView();
+	lightMeshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+	meshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+}
+
+void GameController::UpdateTransformScene()
+{
+	meshes[0]->position += (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
+	meshes[0]->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
+
+	glm::mat4 vp = camera.GetProjection() * camera.GetView();
+	lightMeshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+	meshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
 }

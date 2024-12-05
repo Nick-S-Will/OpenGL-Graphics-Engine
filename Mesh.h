@@ -50,7 +50,7 @@ public:
 	void AddInstance() { AddInstance(true); }
 	void RemoveInstance();
 	void Cleanup();
-	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
+	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor);
 
 private:
 	Shader* shader = nullptr;
@@ -72,7 +72,7 @@ private:
 	void AddInstance(bool updateBuffer);
 	void UpdateInstanceBuffer();
 	void BindAttributes();
-	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes);
+	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor);
 	
 	void static CalculateTangents(std::vector<objl::Vertex> vertices, objl::Vector3& tangent, objl::Vector3& bitangent)
 	{

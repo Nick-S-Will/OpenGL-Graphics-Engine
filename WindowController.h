@@ -12,13 +12,12 @@ public:
 
 	GLFWwindow* GetWindow()
 	{
-		if (window == nullptr) NewWindow();
-		return window;
+		return window != nullptr ? window : NewWindow();
 	}
 	glm::ivec2 GetScreenSize() { return screenSize; }
 
 	void Create(int width = -1, int height = -1);
-	void NewWindow();
+	GLFWwindow* NewWindow(std::string name = "Sample Scene");
 
 private:
 	GLFWwindow* window;

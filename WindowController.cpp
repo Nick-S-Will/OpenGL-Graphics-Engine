@@ -22,7 +22,7 @@ void WindowController::Create(int width, int height)
 	screenSize = glm::ivec2(width, height);
 }
 
-void WindowController::NewWindow()
+GLFWwindow* WindowController::NewWindow(std::string name)
 {
 	M_ASSERT(glfwInit(), "Failed to initialize GLFW");
 
@@ -30,8 +30,10 @@ void WindowController::NewWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	
-	window = glfwCreateWindow(screenSize.x, screenSize.y, "Sample Scene", NULL, NULL);
+	window = glfwCreateWindow(screenSize.x, screenSize.y, name.c_str(), NULL, NULL);
 	M_ASSERT(window != nullptr, "Failed to open GLFW window.");
 
 	glfwMakeContextCurrent(window);
+
+	return window;
 }

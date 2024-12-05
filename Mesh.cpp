@@ -19,8 +19,6 @@ void Mesh::Create(Shader* shader, std::string filePath, int instanceCount)
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	vertexStride = 14;
-
 	if (instanceCount <= 1)
 	{
 		this->instanceCount = 1;
@@ -100,6 +98,8 @@ void Mesh::LoadOBJ(std::string& file)
 	textureFileName = texturePath != "" ? GetFileName(texturePath) : "BrickWallNormal.jpg";
 	normalTexture = Texture();
 	normalTexture.LoadTexture(textureDirectory + textureFileName, GL_REPEAT);
+
+	vertexStride = loader.LoadedMaterials[0].map_bump != "" ? 14 : 8;
 }
 
 void Mesh::LoadASE(std::string& file)
@@ -248,14 +248,14 @@ void Mesh::Cleanup()
 	instanceBuffer = 0;
 }
 
-void Mesh::Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes)
+void Mesh::Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor)
 {
 	if (!isEnabled) return;
 
 	glUseProgram(shader->GetProgramID());
 
 	BindAttributes();
-	SetShaderVariables(vp, cameraPosition, lightMeshes);
+	SetShaderVariables(vp, cameraPosition, lightMeshes, specularStrength, specularColor);
 
 	if (HasInstancingEnabled())
 	{
@@ -325,7 +325,7 @@ void Mesh::BindAttributes()
 	}
 }
 
-void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes)
+void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor)
 {
 	shader->SetMat4("World", GetTransform());
 	shader->SetMat4("WVP", vp * GetTransform());
@@ -334,7 +334,7 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 	shader->SetInt("InstancingEnabled", HasInstancingEnabled());
 
 	shader->SetVec3("ambientColor", glm::vec3(.2f));
-	shader->SetFloat("material.specularStrength", 100);
+	shader->SetFloat("material.specularStrength", specularStrength);
 	shader->SetTextureSampler("material.diffuseTexture", GL_TEXTURE0, 0, texture.GetTexture());
 	shader->SetTextureSampler("material.specularTexture", GL_TEXTURE1, 1, specularTexture.GetTexture());
 	shader->SetTextureSampler("material.normalTexture", GL_TEXTURE2, 2, normalTexture.GetTexture());
@@ -346,7 +346,7 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 		shader->SetArrayVec3(arrayName, i, "direction", lightMeshes[i]->GetForward());
 		shader->SetArrayVec3(arrayName, i, "color", lightMeshes[i]->color);
 		shader->SetArrayVec3(arrayName, i, "diffuseColor", { 1.0f, 1.0f, 1.0f });
-		shader->SetArrayVec3(arrayName, i, "specularColor", { 3.0f, 3.0f, 3.0f });
+		shader->SetArrayVec3(arrayName, i, "specularColor", specularColor);
 		shader->SetArrayFloat(arrayName, i, "constant", 1.f);
 		shader->SetArrayFloat(arrayName, i, "linear", .09f);
 		shader->SetArrayFloat(arrayName, i, "quadratic", .032f);

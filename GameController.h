@@ -6,9 +6,11 @@
 #include "StandardIncludes.h"
 #include "Camera.h"
 #include "Shader.h"
-#include "Mesh.h"
 #include "Skybox.h"
+#include "Mesh.h"
+#include "Font.h"
 #include "PostProcessor.h"
+#include "WindowController.h"
 
 enum class GameMode : int {
 	MoveLight,
@@ -29,20 +31,51 @@ public:
 
 	void Initialize();
 	void RunGame();
-	void ResetLightPosition() { lightMeshes[0]->position = glm::vec3(0.f); }
+	void ResetLightPosition() { lightMeshes[0]->position = lightPosition; }
 
 private:
 	Camera camera;
-	PostProcessor postProcessor = {};
-	Shader diffuseShader = {};
-	Shader colorShader = {};
-	Shader fontShader = {};
 	Shader skyboxShader = {};
-	Shader postProcessorShader = {};
-	std::vector<Mesh*> meshes;
-	std::vector<Mesh*> lightMeshes;
 	Skybox* skybox = nullptr;
+	Shader diffuseShader = {};
+	std::vector<Mesh*> meshes;
+	Shader colorShader = {};
+	std::vector<Mesh*> lightMeshes;
+	glm::vec3 lightPosition = glm::vec3(0.f, 0.f, 15.f);
+	Shader fontShader = {};
+	Font* arialFont = nullptr;
+	int fontSize = 20;
+	Shader postProcessorShader = {};
+	PostProcessor postProcessor = {};
 	GLuint vao;
+
+	void LoadAssets();
+	void CleanupAssets();
+	void UpdateMoveLightScene();
+	void UpdateTransformScene();
+
+	void RenderLines(const std::vector<std::string>& lines, const glm::vec3& color)
+	{
+		for (int i = 0; i < (int)lines.size(); i++)
+		{
+			arialFont->RenderText(lines[i], fontSize / 4.f, (i + 1) * fontSize, color);
+		}
+	}
+
+	static glm::vec3 GetMouseDelta()
+	{
+		GLFWwindow* window = WindowController::GetInstance().GetWindow();
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		{
+			double mouseX, mouseY;
+			glfwGetCursorPos(window, &mouseX, &mouseY);
+			int windowWidth, windowHeight;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			return glm::vec3(2. * mouseX / windowWidth - 1., 1. - (2. * mouseY) / windowHeight, 0);
+		}
+
+		return glm::vec3(0.f);
+	}
 
 	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
 	{
@@ -56,6 +89,11 @@ private:
 	static float GetRandomFloat(float min, float max)
 	{
 		return min + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (max - min)));
+	}
+
+	static std::string Vec3ToString(glm::vec3 vec3)
+	{
+		return "(" + std::to_string(vec3.x) + ", " + std::to_string(vec3.y) + ", " + std::to_string(vec3.z) + ")";
 	}
 };
 
