@@ -10,14 +10,26 @@
 #include "Skybox.h"
 #include "PostProcessor.h"
 
+enum class GameMode : int {
+	MoveLight,
+	Transform,
+	WaterScene,
+	SpaceScene
+};
+
 class GameController : public Singleton<GameController>
 {
 public:
+	GameMode gameMode = GameMode::MoveLight;
+	float specularStrength = 1.f;
+	glm::vec3 specularColor = { 1.f, 1.f, 1.f };
+
 	GameController() = default;
 	virtual ~GameController() {}
 
 	void Initialize();
 	void RunGame();
+	void ResetLightPosition() { lightMeshes[0]->position = glm::vec3(0.f); }
 
 private:
 	Camera camera;
