@@ -46,8 +46,8 @@ void GameController::LoadAssets()
 
 	Mesh* mesh = new Mesh();
 	mesh->Create(&diffuseShader, modelDirectory + "Fighter.ase");
-	mesh->scale = glm::vec3(1e-2f);
 	meshes.push_back(mesh);
+	ResetTransform();
 
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
@@ -152,10 +152,11 @@ void GameController::UpdateMoveLightScene()
 
 void GameController::UpdateTransformScene()
 {
-	meshes[0]->position += (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
-	meshes[0]->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
+	glm::vec3 timeScaledMouseDelta = (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
+	if (transformPosition) meshes[0]->position += 2.f * timeScaledMouseDelta;
+	if (transformRotation) meshes[0]->eulerAngles += 3.f * timeScaledMouseDelta;
+	if (transformScale) meshes[0]->scale += 1e-2f * timeScaledMouseDelta;
 
 	glm::mat4 vp = camera.GetProjection() * camera.GetView();
-	lightMeshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
 	meshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
 }

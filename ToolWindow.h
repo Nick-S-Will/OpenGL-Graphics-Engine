@@ -238,6 +238,7 @@ namespace OpenGL
 			   this->resetTransformButton->TabIndex = 15;
 			   this->resetTransformButton->Text = L"Reset Transform";
 			   this->resetTransformButton->UseVisualStyleBackColor = true;
+			   this->resetTransformButton->Click += gcnew System::EventHandler(this, &ToolWindow::resetTransformButton_Click);
 			   // 
 			   // waterSceneRadioButton
 			   // 
@@ -289,6 +290,7 @@ namespace OpenGL
 			   this->translateCheckBox->TabIndex = 20;
 			   this->translateCheckBox->Text = L"Translate";
 			   this->translateCheckBox->UseVisualStyleBackColor = true;
+			   this->translateCheckBox->CheckedChanged += gcnew System::EventHandler(this, &ToolWindow::translateCheckBox_CheckedChanged);
 			   // 
 			   // rotateCheckBox
 			   // 
@@ -299,6 +301,7 @@ namespace OpenGL
 			   this->rotateCheckBox->TabIndex = 21;
 			   this->rotateCheckBox->Text = L"Rotate";
 			   this->rotateCheckBox->UseVisualStyleBackColor = true;
+			   this->rotateCheckBox->CheckedChanged += gcnew System::EventHandler(this, &ToolWindow::rotateCheckBox_CheckedChanged);
 			   // 
 			   // scaleCheckBox
 			   // 
@@ -309,6 +312,7 @@ namespace OpenGL
 			   this->scaleCheckBox->TabIndex = 22;
 			   this->scaleCheckBox->Text = L"Scale";
 			   this->scaleCheckBox->UseVisualStyleBackColor = true;
+			   this->scaleCheckBox->CheckedChanged += gcnew System::EventHandler(this, &ToolWindow::scaleCheckBox_CheckedChanged);
 			   // 
 			   // frequencyLabel
 			   // 
@@ -461,7 +465,7 @@ namespace OpenGL
 		GameController::GetInstance().gameMode = GameMode::WaterScene;
 	}
 
-	private: System::Void spaceSceneRadioButton_CheckedChanged(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void spaceSceneRadioButton_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 	{
 		GameController::GetInstance().gameMode = GameMode::SpaceScene;
 	}
@@ -505,6 +509,26 @@ namespace OpenGL
 	private: System::Void bTrackBar_Scroll(System::Object^ sender, System::EventArgs^ e)
 	{
 		UpdateSpecularValues();
+	}
+#pragma endregion
+
+#pragma region Transform
+	private: System::Void resetTransformButton_Click(System::Object^ sender, System::EventArgs^ e)
+	{
+		GameController::GetInstance().ResetTransform();
+	}
+
+	private: System::Void translateCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+		GameController::GetInstance().transformPosition = translateCheckBox->Checked;
+	}
+	private: System::Void rotateCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+		GameController::GetInstance().transformRotation = rotateCheckBox->Checked;
+	}
+	private: System::Void scaleCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+		GameController::GetInstance().transformScale = scaleCheckBox->Checked;
 	}
 #pragma endregion
 	};

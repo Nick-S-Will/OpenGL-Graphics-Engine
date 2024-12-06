@@ -25,6 +25,7 @@ public:
 	GameMode gameMode = GameMode::MoveLight;
 	float specularStrength = 1.f;
 	glm::vec3 specularColor = { 1.f, 1.f, 1.f };
+	bool transformPosition, transformRotation, transformScale;
 
 	GameController() = default;
 	virtual ~GameController() {}
@@ -32,6 +33,12 @@ public:
 	void Initialize();
 	void RunGame();
 	void ResetLightPosition() { lightMeshes[0]->position = lightPosition; }
+	void ResetTransform()
+	{
+		meshes[0]->position = glm::vec3(0.f);
+		meshes[0]->eulerAngles = glm::vec3(0.f);
+		meshes[0]->scale = glm::vec3(1e-2f);
+	}
 
 private:
 	Camera camera;
@@ -65,16 +72,28 @@ private:
 	static glm::vec3 GetMouseDelta()
 	{
 		GLFWwindow* window = WindowController::GetInstance().GetWindow();
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		bool leftPressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+		bool middlePressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+		auto mouseDelta = glm::vec3(0);
+		if (!(leftPressed || middlePressed)) return mouseDelta;
+
+		double mouseX, mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		int windowWidth, windowHeight;
+		glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+		if (leftPressed)
 		{
-			double mouseX, mouseY;
-			glfwGetCursorPos(window, &mouseX, &mouseY);
-			int windowWidth, windowHeight;
-			glfwGetWindowSize(window, &windowWidth, &windowHeight);
-			return glm::vec3(2. * mouseX / windowWidth - 1., 1. - (2. * mouseY) / windowHeight, 0);
+			mouseDelta.x = 2. * mouseX / windowWidth - 1.;
+			mouseDelta.y = 1. - (2. * mouseY) / windowHeight;
 		}
 
-		return glm::vec3(0.f);
+		if (middlePressed)
+		{
+			mouseDelta.z = 2. * mouseY / windowHeight - 1;
+		}
+
+		return mouseDelta;
 	}
 
 	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
@@ -93,7 +112,7 @@ private:
 
 	static std::string Vec3ToString(glm::vec3 vec3)
 	{
-		return "(" + std::to_string(vec3.x) + ", " + std::to_string(vec3.y) + ", " + std::to_string(vec3.z) + ")";
+		return "{" + std::to_string(vec3.x) + ", " + std::to_string(vec3.y) + ", " + std::to_string(vec3.z) + "}";
 	}
 };
 
