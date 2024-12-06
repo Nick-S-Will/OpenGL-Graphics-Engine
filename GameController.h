@@ -35,6 +35,7 @@ public:
 	PostProcessor* GetPostProcessor() { return postProcessor; }
 	Mesh* GetFighterMesh() { return meshes[0]; }
 	Mesh* GetFishMesh() { return meshes[1]; }
+	Mesh* GetMultiFishMesh() { return meshes[2]; }
 
 	void Initialize();
 	void RunGame();

@@ -208,7 +208,7 @@ void Mesh::AddInstances(int count)
 
 	for (int i = 0; i < count; i++)
 	{
-		glm::mat4 model = glm::translate(glm::mat4(1.f), GetRandomVec3(50.f)) * GetRotationFromEulerAngles(GetRandomVec3(180.f));
+		glm::mat4 model = glm::translate(glm::mat4(1.f), GetRandomVec3(30.f)) * GetRotationFromEulerAngles(GetRandomVec3(180.f)) * glm::scale(glm::mat4(1.f), GetRandomVec3(1.f));
 		for (int x = 0; x < 4; x++)
 		{
 			for (int y = 0; y < 4; y++)

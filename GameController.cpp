@@ -26,7 +26,7 @@ void GameController::LoadAssets()
 {
 	std::string modelDirectory = "./Assets/Models/";
 	std::string textureDirectory = "./Assets/Textures/";
-	std::string skyboxDirectory = textureDirectory + "Ocean Skybox/";
+	std::string skyboxDirectory = textureDirectory + "Space Skybox/";
 	std::string fontDirectory = "./Assets/Fonts/";
 
 	skyboxShader = Shader();
@@ -34,12 +34,12 @@ void GameController::LoadAssets()
 
 	skybox = new Skybox();
 	skybox->Create(&skyboxShader, modelDirectory + "Skybox.obj",
-		{ skyboxDirectory + "right.jpg",
-		  skyboxDirectory + "left.jpg",
-		  skyboxDirectory + "top.jpg",
-		  skyboxDirectory + "bottom.jpg",
-		  skyboxDirectory + "front.jpg",
-		  skyboxDirectory + "back.jpg" });
+		{ skyboxDirectory + "right.png",
+		  skyboxDirectory + "left.png",
+		  skyboxDirectory + "top.png",
+		  skyboxDirectory + "bottom.png",
+		  skyboxDirectory + "front.png",
+		  skyboxDirectory + "back.png" });
 
 	diffuseShader = Shader();
 	diffuseShader.LoadShaders("Diffuse.vertexshader", "Diffuse.fragmentshader");
@@ -51,6 +51,10 @@ void GameController::LoadAssets()
 
 	mesh = new Mesh();
 	mesh->Create(&diffuseShader, modelDirectory + "Fish.ase");
+	meshes.push_back(mesh);
+
+	mesh = new Mesh();
+	mesh->Create(&diffuseShader, modelDirectory + "Fish.ase", 100);
 	meshes.push_back(mesh);
 
 	colorShader = Shader();
@@ -95,6 +99,7 @@ void GameController::RunGame()
 		postProcessor->effectType = gameMode == GameMode::WaterScene ? EffectType::Wave : EffectType::None;
 		postProcessor->Start();
 
+		if (gameMode != GameMode::SpaceScene) camera.LookAt({ 0.f, 0.f, 20.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 		switch (gameMode)
 		{
 		case GameMode::MoveLight: UpdateMoveLightScene(); break;
@@ -176,5 +181,12 @@ void GameController::UpdateWaterScene()
 
 void GameController::UpdateSpaceScene()
 {
+	camera.RotateAround(glm::vec3(0.f, 0.f, 19.99f), glm::vec3(0.f, 1.f, 0.f), -10.f * (float)GameTime::GetInstance().GetDeltaTime());
 
+	GetFighterMesh()->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
+
+	glm::mat4 vp = camera.GetProjection() * camera.GetView();
+	skybox->Render(vp * glm::translate(glm::mat4(1.f), camera.GetPosition()));
+	GetFighterMesh()->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+	GetMultiFishMesh()->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
 }

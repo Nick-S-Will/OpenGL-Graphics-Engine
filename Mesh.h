@@ -28,7 +28,7 @@ public:
 	Mesh() = default;
 	virtual ~Mesh();
 
-	glm::mat4 GetTransform() const { return glm::translate(glm::mat4(1), position) * GetRotationFromEulerAngles(eulerAngles) * glm::scale(glm::mat4(1), scale); }
+	glm::mat4 GetTransform() const { return glm::translate(glm::mat4(1.f), position) * GetRotationFromEulerAngles(eulerAngles) * glm::scale(glm::mat4(1.f), scale); }
 	glm::mat4 GetRotationMatrix() const { return GetRotationFromEulerAngles(eulerAngles); }
 	glm::vec3 GetRight() const { return GetRotationMatrix() * glm::vec4(1.f, 0.f, 0.f, 0.f); }
 	glm::vec3 GetUp() const { return GetRotationMatrix() * glm::vec4(0.f, 1.f, 0.f, 0.f); }
