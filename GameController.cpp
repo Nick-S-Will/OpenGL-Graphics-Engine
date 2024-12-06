@@ -49,6 +49,10 @@ void GameController::LoadAssets()
 	meshes.push_back(mesh);
 	ResetTransform();
 
+	mesh = new Mesh();
+	mesh->Create(&diffuseShader, modelDirectory + "Fish.ase");
+	meshes.push_back(mesh);
+
 	colorShader = Shader();
 	colorShader.LoadShaders("Color.vertexshader", "Color.fragmentshader");
 
@@ -73,8 +77,8 @@ void GameController::LoadAssets()
 	postProcessorShader = Shader();
 	postProcessorShader.LoadShaders("PostProcessor.vertexshader", "PostProcessor.fragmentshader");
 
-	postProcessor = PostProcessor();
-	postProcessor.Create(&postProcessorShader);
+	postProcessor = new PostProcessor();
+	postProcessor->Create(&postProcessorShader);
 }
 
 void GameController::RunGame()
@@ -88,15 +92,18 @@ void GameController::RunGame()
 		GameTime::GetInstance().Update();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		postProcessor.Start();
+		postProcessor->effectType = gameMode == GameMode::WaterScene ? EffectType::Wave : EffectType::None;
+		postProcessor->Start();
 
 		switch (gameMode)
 		{
 		case GameMode::MoveLight: UpdateMoveLightScene(); break;
 		case GameMode::Transform: UpdateTransformScene(); break;
-		case GameMode::WaterScene:  break;
-		case GameMode::SpaceScene:  break;
+		case GameMode::WaterScene: UpdateWaterScene(); break;
+		case GameMode::SpaceScene: UpdateSpaceScene(); break;
 		}
+
+		postProcessor->End();
 
 		double mouseX, mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -106,13 +113,12 @@ void GameController::RunGame()
 			"Mouse Pos: " + std::to_string(mouseX) + " " + std::to_string(mouseY),
 			"Left Button: " + (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) ? "Down" : "Up",
 			"Right Button: " + (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) ? "Down" : "Up",
-			"Fighter Position: " + Vec3ToString(meshes[0]->position),
-			"Fighter Rotation: " + Vec3ToString(glm::degrees(meshes[0]->eulerAngles)),
-			"Fighter Scale: " + Vec3ToString(meshes[0]->scale)
+			"Fighter Position: " + Vec3ToString(GetFighterMesh()->position),
+			"Fighter Rotation: " + Vec3ToString(glm::degrees(GetFighterMesh()->eulerAngles)),
+			"Fighter Scale: " + Vec3ToString(GetFighterMesh()->scale)
 		};
 		RenderLines(debugLines, glm::vec3(1.f, 1.f, 0.f));
 
-		postProcessor.End();
 		glfwSwapBuffers(window);
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
@@ -136,27 +142,39 @@ void GameController::CleanupAssets()
 	delete arialFont;
 
 	postProcessorShader.Cleanup();
-	postProcessor.Cleanup();
+	postProcessor->Cleanup();
+	delete postProcessor;
 }
 
 void GameController::UpdateMoveLightScene()
 {
-	meshes[0]->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
+	GetFighterMesh()->eulerAngles.x += (float)GameTime::GetInstance().GetDeltaTime();
 
 	lightMeshes[0]->position += 2.f * (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
 
 	glm::mat4 vp = camera.GetProjection() * camera.GetView();
 	lightMeshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
-	meshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+	GetFighterMesh()->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
 }
 
 void GameController::UpdateTransformScene()
 {
 	glm::vec3 timeScaledMouseDelta = (float)GameTime::GetInstance().GetDeltaTime() * GetMouseDelta();
-	if (transformPosition) meshes[0]->position += 2.f * timeScaledMouseDelta;
-	if (transformRotation) meshes[0]->eulerAngles += 3.f * timeScaledMouseDelta;
-	if (transformScale) meshes[0]->scale += 1e-2f * timeScaledMouseDelta;
+	if (transformPosition) GetFighterMesh()->position += 2.f * timeScaledMouseDelta;
+	if (transformRotation) GetFighterMesh()->eulerAngles += 3.f * timeScaledMouseDelta;
+	if (transformScale) GetFighterMesh()->scale += 1e-2f * timeScaledMouseDelta;
 
 	glm::mat4 vp = camera.GetProjection() * camera.GetView();
-	meshes[0]->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+	GetFighterMesh()->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+}
+
+void GameController::UpdateWaterScene()
+{
+	glm::mat4 vp = camera.GetProjection() * camera.GetView();
+	GetFishMesh()->Render(vp, camera.GetPosition(), lightMeshes, specularStrength, specularColor);
+}
+
+void GameController::UpdateSpaceScene()
+{
+
 }

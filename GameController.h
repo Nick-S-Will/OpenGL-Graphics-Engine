@@ -23,21 +23,27 @@ class GameController : public Singleton<GameController>
 {
 public:
 	GameMode gameMode = GameMode::MoveLight;
+
 	float specularStrength = 1.f;
 	glm::vec3 specularColor = { 1.f, 1.f, 1.f };
+
 	bool transformPosition, transformRotation, transformScale;
 
 	GameController() = default;
 	virtual ~GameController() {}
+
+	PostProcessor* GetPostProcessor() { return postProcessor; }
+	Mesh* GetFighterMesh() { return meshes[0]; }
+	Mesh* GetFishMesh() { return meshes[1]; }
 
 	void Initialize();
 	void RunGame();
 	void ResetLightPosition() { lightMeshes[0]->position = lightPosition; }
 	void ResetTransform()
 	{
-		meshes[0]->position = glm::vec3(0.f);
-		meshes[0]->eulerAngles = glm::vec3(0.f);
-		meshes[0]->scale = glm::vec3(1e-2f);
+		GetFighterMesh()->position = glm::vec3(0.f);
+		GetFighterMesh()->eulerAngles = glm::vec3(0.f);
+		GetFighterMesh()->scale = glm::vec3(1e-2f);
 	}
 
 private:
@@ -53,19 +59,21 @@ private:
 	Font* arialFont = nullptr;
 	int fontSize = 20;
 	Shader postProcessorShader = {};
-	PostProcessor postProcessor = {};
+	PostProcessor* postProcessor = {};
 	GLuint vao;
 
 	void LoadAssets();
 	void CleanupAssets();
 	void UpdateMoveLightScene();
 	void UpdateTransformScene();
+	void UpdateWaterScene();
+	void UpdateSpaceScene();
 
 	void RenderLines(const std::vector<std::string>& lines, const glm::vec3& color)
 	{
 		for (int i = 0; i < (int)lines.size(); i++)
 		{
-			arialFont->RenderText(lines[i], fontSize / 4.f, (i + 1) * fontSize, color);
+			arialFont->RenderText(lines[i], fontSize / 4.f, (i + 1.f) * fontSize, color);
 		}
 	}
 
@@ -84,35 +92,16 @@ private:
 
 		if (leftPressed)
 		{
-			mouseDelta.x = 2. * mouseX / windowWidth - 1.;
-			mouseDelta.y = 1. - (2. * mouseY) / windowHeight;
+			mouseDelta.x = 2.f * (float)mouseX / windowWidth - 1.f;
+			mouseDelta.y = 1.f - (2.f * (float)mouseY) / windowHeight;
 		}
 
 		if (middlePressed)
 		{
-			mouseDelta.z = 2. * mouseY / windowHeight - 1;
+			mouseDelta.z = 2.f * (float)mouseY / windowHeight - 1.f;
 		}
 
 		return mouseDelta;
-	}
-
-	static glm::vec3 GetRandomPosition(float minLength, float maxLength)
-	{
-		float scalar = GetRandomFloat(minLength, maxLength);
-		float angle = GetRandomFloat(0.f, glm::radians(360.f));
-		glm::vec3 direction(sin(angle), cos(angle), 0.f);
-
-		return scalar * direction;
-	}
-
-	static float GetRandomFloat(float min, float max)
-	{
-		return min + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (max - min)));
-	}
-
-	static std::string Vec3ToString(glm::vec3 vec3)
-	{
-		return "{" + std::to_string(vec3.x) + ", " + std::to_string(vec3.y) + ", " + std::to_string(vec3.z) + "}";
 	}
 };
 

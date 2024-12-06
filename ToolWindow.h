@@ -19,6 +19,7 @@ namespace OpenGL
 			InitializeComponent();
 
 			UpdateSpecularValues();
+			UpdateWaterSceneValues();
 		}
 
 	protected:
@@ -53,7 +54,8 @@ namespace OpenGL
 	private: System::Windows::Forms::CheckBox^ rotateCheckBox;
 	private: System::Windows::Forms::CheckBox^ scaleCheckBox;
 	private: System::Windows::Forms::Label^ frequencyLabel;
-	private: System::Windows::Forms::TrackBar^ frquencyTrackBar;
+	private: System::Windows::Forms::TrackBar^ frequencyTrackBar;
+
 	private: System::Windows::Forms::Label^ frequencyValueLabel;
 	private: System::Windows::Forms::Label^ amplitudeValueLabel;
 	private: System::Windows::Forms::TrackBar^ amplitudeTrackBar;
@@ -89,7 +91,7 @@ namespace OpenGL
 			   this->rotateCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			   this->scaleCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			   this->frequencyLabel = (gcnew System::Windows::Forms::Label());
-			   this->frquencyTrackBar = (gcnew System::Windows::Forms::TrackBar());
+			   this->frequencyTrackBar = (gcnew System::Windows::Forms::TrackBar());
 			   this->frequencyValueLabel = (gcnew System::Windows::Forms::Label());
 			   this->amplitudeValueLabel = (gcnew System::Windows::Forms::Label());
 			   this->amplitudeTrackBar = (gcnew System::Windows::Forms::TrackBar());
@@ -101,7 +103,7 @@ namespace OpenGL
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->rTrackBar))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->gTrackBar))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->bTrackBar))->BeginInit();
-			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frquencyTrackBar))->BeginInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frequencyTrackBar))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->amplitudeTrackBar))->BeginInit();
 			   this->SuspendLayout();
 			   // 
@@ -323,12 +325,16 @@ namespace OpenGL
 			   this->frequencyLabel->TabIndex = 23;
 			   this->frequencyLabel->Text = L"Frequency";
 			   // 
-			   // frquencyTrackBar
+			   // frequencyTrackBar
 			   // 
-			   this->frquencyTrackBar->Location = System::Drawing::Point(12, 475);
-			   this->frquencyTrackBar->Name = L"frquencyTrackBar";
-			   this->frquencyTrackBar->Size = System::Drawing::Size(458, 56);
-			   this->frquencyTrackBar->TabIndex = 24;
+			   this->frequencyTrackBar->Location = System::Drawing::Point(12, 475);
+			   this->frequencyTrackBar->Maximum = 400;
+			   this->frequencyTrackBar->Name = L"frequencyTrackBar";
+			   this->frequencyTrackBar->Size = System::Drawing::Size(458, 56);
+			   this->frequencyTrackBar->TabIndex = 24;
+			   this->frequencyTrackBar->TickFrequency = 40;
+			   this->frequencyTrackBar->Value = 100;
+			   this->frequencyTrackBar->Scroll += gcnew System::EventHandler(this, &ToolWindow::frequencyTrackBar_Scroll);
 			   // 
 			   // frequencyValueLabel
 			   // 
@@ -351,9 +357,11 @@ namespace OpenGL
 			   // amplitudeTrackBar
 			   // 
 			   this->amplitudeTrackBar->Location = System::Drawing::Point(12, 537);
+			   this->amplitudeTrackBar->Maximum = 100;
 			   this->amplitudeTrackBar->Name = L"amplitudeTrackBar";
 			   this->amplitudeTrackBar->Size = System::Drawing::Size(458, 56);
 			   this->amplitudeTrackBar->TabIndex = 27;
+			   this->amplitudeTrackBar->Scroll += gcnew System::EventHandler(this, &ToolWindow::amplitudeTrackBar_Scroll);
 			   // 
 			   // amplitudeLabel
 			   // 
@@ -373,6 +381,7 @@ namespace OpenGL
 			   this->tintBlueCheckBox->TabIndex = 30;
 			   this->tintBlueCheckBox->Text = L"Tint Blue";
 			   this->tintBlueCheckBox->UseVisualStyleBackColor = true;
+			   this->tintBlueCheckBox->CheckedChanged += gcnew System::EventHandler(this, &ToolWindow::tintBlueCheckBox_CheckedChanged);
 			   // 
 			   // wireframeRenderCheckBox
 			   // 
@@ -383,6 +392,7 @@ namespace OpenGL
 			   this->wireframeRenderCheckBox->TabIndex = 29;
 			   this->wireframeRenderCheckBox->Text = L"Wireframe Render";
 			   this->wireframeRenderCheckBox->UseVisualStyleBackColor = true;
+			   this->wireframeRenderCheckBox->CheckedChanged += gcnew System::EventHandler(this, &ToolWindow::wireframeRenderCheckBox_CheckedChanged);
 			   // 
 			   // spaceSceneRadioButton
 			   // 
@@ -410,7 +420,7 @@ namespace OpenGL
 			   this->Controls->Add(this->amplitudeTrackBar);
 			   this->Controls->Add(this->amplitudeLabel);
 			   this->Controls->Add(this->frequencyValueLabel);
-			   this->Controls->Add(this->frquencyTrackBar);
+			   this->Controls->Add(this->frequencyTrackBar);
 			   this->Controls->Add(this->frequencyLabel);
 			   this->Controls->Add(this->scaleCheckBox);
 			   this->Controls->Add(this->rotateCheckBox);
@@ -441,7 +451,7 @@ namespace OpenGL
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->rTrackBar))->EndInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->gTrackBar))->EndInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->bTrackBar))->EndInit();
-			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frquencyTrackBar))->EndInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frequencyTrackBar))->EndInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->amplitudeTrackBar))->EndInit();
 			   this->ResumeLayout(false);
 			   this->PerformLayout();
@@ -479,7 +489,7 @@ namespace OpenGL
 
 	private: System::Void UpdateSpecularValues()
 	{
-		GameController::GetInstance().specularStrength = specularStrengthTrackBar->Value;
+		GameController::GetInstance().specularStrength = (float)specularStrengthTrackBar->Value;
 		specularStrengthValueLabel->Text = specularStrengthTrackBar->Value.ToString();
 
 		float r = 3.f * rTrackBar->Value / rTrackBar->Maximum;
@@ -529,6 +539,46 @@ namespace OpenGL
 	private: System::Void scaleCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 	{
 		GameController::GetInstance().transformScale = scaleCheckBox->Checked;
+	}
+#pragma endregion
+
+#pragma region Water Scene
+	private: System::Void UpdateWaterSceneValues()
+	{
+		float frequency = 4.f * frequencyTrackBar->Value / frequencyTrackBar->Maximum;
+		frequencyValueLabel->Text = frequency.ToString("F2");
+
+		float amplitude = (float)amplitudeTrackBar->Value / amplitudeTrackBar->Maximum;
+		amplitudeValueLabel->Text = amplitude.ToString("F2");
+
+		PostProcessor* postProcessor = GameController::GetInstance().GetPostProcessor();
+		if (postProcessor != nullptr)
+		{
+			postProcessor->frequency = frequency;
+			postProcessor->amplitude = amplitude;
+		}
+	}
+
+	private: System::Void frequencyTrackBar_Scroll(System::Object^ sender, System::EventArgs^ e)
+	{
+		UpdateWaterSceneValues();
+	}
+
+	private: System::Void amplitudeTrackBar_Scroll(System::Object^ sender, System::EventArgs^ e)
+	{
+		UpdateWaterSceneValues();
+	}
+
+	private: System::Void wireframeRenderCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+		PostProcessor* postProcessor = GameController::GetInstance().GetPostProcessor();
+		if (postProcessor != nullptr) postProcessor->wireframeRender = wireframeRenderCheckBox->Checked;
+	}
+
+	private: System::Void tintBlueCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+		PostProcessor* postProcessor = GameController::GetInstance().GetPostProcessor();
+		if (postProcessor != nullptr) postProcessor->tintBlue = tintBlueCheckBox->Checked;
 	}
 #pragma endregion
 	};

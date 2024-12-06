@@ -1,11 +1,14 @@
 #include "PostProcessor.h"
 #include "Shader.h"
 #include "WindowController.h"
+#include "GameTime.h"
 
-void PostProcessor::Create(Shader* shader)
+void PostProcessor::Create(Shader* shader, EffectType effect)
 {
 	this->shader = shader;
+	effectType = effect;
 
+	glLineWidth(10.f);
 	CreateBuffers();
 	CreateVertices();
 }
@@ -31,8 +34,14 @@ void PostProcessor::End()
 
 	glUseProgram(shader->GetProgramID());
 	shader->SetTextureSampler("screenTexture", GL_TEXTURE0, 0, textureColorBufferLocation);
-	shader->SetFloat("time", 2.f * glfwGetTime());
+	shader->SetFloat("time", GameTime::GetInstance().GetCurrentTime());
+	shader->SetFloat("frequency", frequency);
+	shader->SetFloat("amplitude", amplitude);
 	shader->SetInt("effectType", static_cast<int>(effectType));
+	shader->SetInt("tintBlue", tintBlue);
+
+	glPolygonMode(GL_FRONT_AND_BACK, effectType != EffectType::None && wireframeRender ? GL_LINE : GL_FILL);
+
 	BindVertices();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glDisableVertexAttribArray(shader->GetVertices());

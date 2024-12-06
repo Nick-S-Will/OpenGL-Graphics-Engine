@@ -47,8 +47,8 @@ public:
 	bool HasInstancingEnabled() const { return instanceCount > 1; }
 
 	void Create(Shader* shader, std::string filePath, int instanceCount = 1);
-	void AddInstance() { AddInstance(true); }
-	void RemoveInstance();
+	void AddInstances(int count);
+	void RemoveInstances(int count);
 	void Cleanup();
 	void Render(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor);
 
@@ -69,7 +69,6 @@ private:
 	void LoadOBJ(std::string& file);
 	void LoadASE(std::string& file);
 
-	void AddInstance(bool updateBuffer);
 	void UpdateInstanceBuffer();
 	void BindAttributes();
 	void SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vector<Mesh*>& lightMeshes, float specularStrength, glm::vec3 specularColor);

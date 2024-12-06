@@ -30,12 +30,16 @@ const int BLUR_EFFECT = 3;
 const int SHARP_EFFECT = 4;
 const int EDGE_EFFECT = 5;
 const int RAINBOW_EFFECT = 6;
+const int WAVE_EFFECT = 7;
 
 in vec2 retTexCoords;
 
 uniform sampler2D screenTexture;
 uniform float time;
+uniform float frequency;
+uniform float amplitude;
 uniform int effectType;
+uniform bool tintBlue;
 
 out vec4 FragColor;
 
@@ -62,7 +66,7 @@ vec3 getKernelSampledColor(float kernel[9])
 	vec3 color = vec3(0.f);
 	for (int i = 0; i < 9; i++)
 	{
-		color += vec3(texture(screenTexture, retTexCoords + offsets[i])) * kernel[i];
+		color += texture(screenTexture, retTexCoords + offsets[i]).rgb * kernel[i];
 	}
 
 	return color;
@@ -80,6 +84,20 @@ vec3 getRainbowColor()
 	return mix(vec3(r, g, b), color, .75f);
 }
 
+vec3 getWaveColor()
+{
+	vec2 sampleOffset = vec2(sin(retTexCoords.x * frequency + time) * amplitude);
+	vec3 waveColor = texture(screenTexture, retTexCoords + sampleOffset).rgb;
+
+	if (tintBlue)
+	{
+		waveColor.r /= 2.f;
+		waveColor.g /= 2.f;
+	}
+
+	return waveColor;
+}
+
 void main()
 {
 	vec3 color;
@@ -91,6 +109,7 @@ void main()
 	case SHARP_EFFECT: color = getKernelSampledColor(sharpKernel); break;
 	case EDGE_EFFECT: color = getKernelSampledColor(edgeDetectionKernel); break;
 	case RAINBOW_EFFECT: color = getRainbowColor(); break;
+	case WAVE_EFFECT: color = getWaveColor(); break;
 	default: color = getBaseColor(); break;
 	}
 

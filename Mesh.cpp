@@ -29,7 +29,7 @@ void Mesh::Create(Shader* shader, std::string filePath, int instanceCount)
 	glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
 
 	srand((int)glfwGetTime());
-	for (int i = 0; i < instanceCount; i++) AddInstance(false);
+	AddInstances(instanceCount);
 
 	UpdateInstanceBuffer();
 }
@@ -202,29 +202,34 @@ void Mesh::LoadASE(std::string& file)
 	else vertexStride = 8;
 }
 
-void Mesh::AddInstance(bool updateBuffer)
+void Mesh::AddInstances(int count)
 {
-	glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(-5 + rand() % 10, -5 + rand() % 10, -5 + rand() % 10));
-	for (int x = 0; x < 4; x++)
+	if (count < 1) return;
+
+	for (int i = 0; i < count; i++)
 	{
-		for (int y = 0; y < 4; y++)
+		glm::mat4 model = glm::translate(glm::mat4(1.f), GetRandomVec3(50.f)) * GetRotationFromEulerAngles(GetRandomVec3(180.f));
+		for (int x = 0; x < 4; x++)
 		{
-			instanceData.push_back(model[x][y]);
+			for (int y = 0; y < 4; y++)
+			{
+				instanceData.push_back(model[x][y]);
+			}
 		}
 	}
 
-	instanceCount++;
+	instanceCount += count;
 
-	if (updateBuffer) UpdateInstanceBuffer();
+	UpdateInstanceBuffer();
 }
 
-void Mesh::RemoveInstance()
+void Mesh::RemoveInstances(int count)
 {
-	if (instanceCount == 1) return;
+	if (count < 1 || count >= instanceCount) return;
 
-	for (int x = 0; x < 16; x++) instanceData.pop_back();
+	for (int x = 0; x < 16 * count; x++) instanceData.pop_back();
 
-	instanceCount--;
+	instanceCount -= count;
 
 	UpdateInstanceBuffer();
 }
@@ -353,6 +358,6 @@ void Mesh::SetShaderVariables(glm::mat4 vp, glm::vec3 cameraPosition, std::vecto
 		shader->SetArrayFloat(arrayName, i, "coneAngle", glm::radians(30.f));
 		shader->SetArrayFloat(arrayName, i, "persistence", 30.f);
 		shader->SetArrayInt(arrayName, i, "type", static_cast<int>(lightMeshes[i]->lightType));
-		shader->SetArrayInt(arrayName, i, "isEnabled", lightMeshes[i]->isEnabled ? 1 : 0);
+		shader->SetArrayInt(arrayName, i, "isEnabled", lightMeshes[i]->isEnabled);
 	}
 }

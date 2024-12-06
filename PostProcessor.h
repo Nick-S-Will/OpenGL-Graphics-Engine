@@ -13,15 +13,18 @@ enum class EffectType : int {
 	Blur = 3,
 	Sharp = 4,
 	Edge = 5,
-	Rainbow = 6
+	Rainbow = 6,
+	Wave = 7
 };
 
-constexpr int EffectTypeCount = 7;
+constexpr int EffectTypeCount = 8;
 
 class PostProcessor
 {
 public:
 	EffectType effectType;
+	float frequency = 1.f, amplitude = 0.f;
+	bool wireframeRender, tintBlue;
 
 	std::string GetEffectName() const
 	{
@@ -33,11 +36,12 @@ public:
 		case EffectType::Sharp: return "Sharp";
 		case EffectType::Edge: return "Edge Detection";
 		case EffectType::Rainbow: return "Rainbow";
+		case EffectType::Wave: return "Wave";
 		default: return "None";
 		}
 	}
 
-	void Create(Shader* shader);
+	void Create(Shader* shader, EffectType effect = EffectType::None);
 	void Cleanup();
 	void Start();
 	void End();
